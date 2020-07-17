@@ -73,6 +73,7 @@ This does an exact match to the primers in `rc_primerB_ad6.fa`
 
 In my (limited) experience, this appears to drop sequences less than 16bp long, and I didn't see any other matches.
 
+### Other steps
 
 Note that the other steps maybe beyond the scope of this project as we can do them with bowtie or something similar.
 
