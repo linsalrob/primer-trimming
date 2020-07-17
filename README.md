@@ -24,6 +24,9 @@ In the [primers](primers) directory there are fasta files for all the primer seq
 This removes the primers in `primerB.fa` from the sequences if the primer is within the first 20 bp. We do not check elsewhere in the sequences. Once a match is found, trim all bases to the left of this primer.
 Do not check reverse complement.
 
+```sh
+
+
 ### Step 2.
 
 #### Remove 3' read through contaminant
