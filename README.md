@@ -32,7 +32,7 @@ $ ./primer-trimming primers/primerB.fa fastq/step_1_input.fq.gz | grep -c TACCGT
 0
 ```
 
-Check one of the reads to be sure that it is being ouput without the primer tag
+Check one of the reads to be sure that it is actually being output without the primer tag
 ```sh
 $ zcat fastq/step_1_input.fq.gz | grep CTTCATAACCCATT
 ATACCGTAGAGCTGCTAAACCAGTACAAAAATCCAGTAAGACAAGTAAGAGTAGTATTAGTTGTTTTAGTACCAACTTTTATACTTTCAATATTACTAATAAATCTCTTAATGTCATCTTTTCTAAGAGTATCTCCAGTAGGATCTTCAAGTTTATAATAAGCCTTTTCAAATTCTTTAGCAGGACTCCAAGATTTATATCCATCTGGATAAGTTACTTCATAACCCATT
