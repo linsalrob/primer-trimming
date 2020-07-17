@@ -62,7 +62,7 @@ Index 16 in `nebnext_adapters.fa` is:
 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG
 ```
 
-So the matched string is **AGATCGGAAGAGCACACGTCTGAACTCCAGTCA** and we ignore the last 4 bases in the sequence (`CATC`) and the `CCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG` stretch of the adapter.
+So the matched string is `AGATCGGAAGAGCACACGTCTGAACTCCAGTCA` and we ignore the last 4 bases in the sequence (`CATC`) and the `CCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG` stretch of the adapter.
 
 
 ### Step 4.
