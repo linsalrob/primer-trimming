@@ -77,5 +77,6 @@ In my (limited) experience, this appears to drop sequences less than 16bp long, 
 
 Note that the other steps maybe beyond the scope of this project as we can do them with bowtie or something similar.
 
-Step 5: Vector contamination removal (PhiX + NCBI UniVecDB)
-Step 6: Host removal
+### Step 5: Vector contamination removal (PhiX + NCBI UniVecDB)
+
+### Step 6: Host removal
