@@ -24,8 +24,21 @@ In the [primers](primers) directory there are fasta files for all the primer seq
 This removes the primers in `primerB.fa` from the sequences if the primer is within the first 20 bp. We do not check elsewhere in the sequences. Once a match is found, trim all bases to the left of this primer.
 Do not check reverse complement.
 
+Count how many times the first primer tag is in the input and how many times it is in the output
 ```sh
+$ zcat fastq/step_1_input.fq.gz | grep -c TACCGTAGAGCTGCTA
+3
+$ ./primer-trimming primers/primerB.fa fastq/step_1_input.fq.gz | grep -c TACCGTAGAGCTGCTA
+0
+```
 
+Check one of the reads to be sure that it is being ouput without the primer tag
+```sh
+$ zcat fastq/step_1_input.fq.gz | grep CTTCATAACCCATT
+ATACCGTAGAGCTGCTAAACCAGTACAAAAATCCAGTAAGACAAGTAAGAGTAGTATTAGTTGTTTTAGTACCAACTTTTATACTTTCAATATTACTAATAAATCTCTTAATGTCATCTTTTCTAAGAGTATCTCCAGTAGGATCTTCAAGTTTATAATAAGCCTTTTCAAATTCTTTAGCAGGACTCCAAGATTTATATCCATCTGGATAAGTTACTTCATAACCCATT
+$ ./primer-trimming primers/primerB.fa fastq/step_1_input.fq.gz | grep CTTCATAACCCATT
+AACCAGTACAAAAATCCAGTAAGACAAGTAAGAGTAGTATTAGTTGTTTTAGTACCAACTTTTATACTTTCAATATTACTAATAAATCTCTTAATGTCATCTTTTCTAAGAGTATCTCCAGTAGGATCTTCAAGTTTATAATAAGCCTTTTCAAATTCTTTAGCAGGACTCCAAGATTTATATCCATCTGGATAAGTTACTTCATAACCCATT
+```
 
 ### Step 2.
 
