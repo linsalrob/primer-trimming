@@ -57,12 +57,12 @@ Removed string:
 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATC
 ```
 
-Index 16 in `nebnext_adapters.fa` is:
+Index 1 in `nebnext_adapters.fa` is:
 ```
-AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG
+AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATCACGATCTCGTATGCCGTCTTCTGCTTG
 ```
 
-So the matched string is `AGATCGGAAGAGCACACGTCTGAACTCCAGTCA` and we ignore the last 4 bases in the sequence (`CATC`) and the `CCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG` stretch of the adapter.
+So the matched string is `AGATCGGAAGAGCACACGTCTGAACTCCAGTCACATC` and the `ACGATCTCGTATGCCGTCTTCTGCTTG` stretch of the adapter is ignored.
 
 
 ### Step 4.
