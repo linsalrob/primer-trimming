@@ -27,7 +27,7 @@ int trim_left(char primers[100][255], char *seq){
 			for(offset = 0; offset < 20; offset++){
 				i = 0;
 				match = mismatch = 0;
-				while(!mismatch & (i<16)){
+				while((mismatch<2) & (i<16)){
 					if(primers[p][i] == seq[i+offset]){
 						match++;
 					}else{
