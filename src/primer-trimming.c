@@ -20,27 +20,29 @@ void remove_newline(char *line){
 }
 
 int trim_left(char primers[100][255], char *seq){
-	int p, offset, i, match, mismatch;
+	int p, offsetS, offsetP, i, match, mismatch;
 
 	for(p = 0; p < 100; p++){
 		if(primers[p][0] != '\0'){
-			for(offset = 0; offset < 20; offset++){
-				i = 0;
-				match = mismatch = 0;
-				while((mismatch<2) & (i<strlen(primers[p]))){
-					if(primers[p][i] == seq[i+offset]){
-						match++;
-					}else{
-						mismatch++;
+			for(offsetS = 0; offsetS < 20; offsetS++){
+				for(offsetP = 0; offsetP <= strlen(primers[p])-11; offsetP++){
+					mismatch = 0;
+					i = 0;
+					while((mismatch < 2) & (i+offsetP <= strlen(primers[p]))){
+						if(primers[p][i+offsetP] != seq[i+offsetS])
+							mismatch++;
+						i++;
 					}
-					i++;
+					// this is because the last bases cannot be a mismatch
+					if(primers[p][i+offsetP] == seq[i+offsetS])
+						i++;
+					if(i >= 11){
+						return (i+offsetS-1);
+					}
 				}
-				if(match >= strlen(primers[p]-1))
-					return offset+strlen(primers[p]);
 			}
 		}
 	}	
-		
 
 	return 0;
 
