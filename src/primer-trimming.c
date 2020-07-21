@@ -1,5 +1,6 @@
 #include <zlib.h>
 #include <stdio.h>
+#include <getopt.h>
 #include "kseq.h"
 #include "uthash.h"
 
@@ -13,10 +14,13 @@ struct my_struct {
 
 KSEQ_INIT(gzFile, gzread)
 
+#define len(x) (int)strlen(x)
+
 void remove_newline(char *line){
-    int new_line = strlen(line) -1;
-    if (line[new_line] == '\n')
-        line[new_line] = '\0';
+	int new_line = len(line) - 1;
+	
+	if (line[new_line] == '\n')
+		line[new_line] = '\0';
 }
 
 int trim_left(char primers[100][255], char *seq){
@@ -25,10 +29,9 @@ int trim_left(char primers[100][255], char *seq){
 	for(p = 0; p < 100; p++){
 		if(primers[p][0] != '\0'){
 			for(offsetS = 0; offsetS < 20; offsetS++){
-				for(offsetP = 0; offsetP <= strlen(primers[p])-11; offsetP++){
-					mismatch = 0;
-					i = 0;
-					while((mismatch < 2) & (i+offsetP <= strlen(primers[p]))){
+				for(offsetP = 0; offsetP <= len(primers[p])-11; offsetP++){
+					i = mismatch = 0;
+					while((mismatch < 2) & (i+offsetP <= len(primers[p]))){
 						if(primers[p][i+offsetP] != seq[i+offsetS])
 							mismatch++;
 						i++;
@@ -36,16 +39,78 @@ int trim_left(char primers[100][255], char *seq){
 					// this is because the last bases cannot be a mismatch
 					if(primers[p][i+offsetP] == seq[i+offsetS])
 						i++;
-					if(i >= 11){
+					if(i >= 11)
 						return (i+offsetS-1);
+				}
+			}
+		}
+	}	
+	return 0;
+}
+
+int trim_right(char primers[100][255], char *seq, int indexL){
+	int p, offsetS, offsetP, i, match, mismatch;
+
+	if(0){ //for(p = 0; p < 100; p++){
+		if(primers[p][0] != '\0'){
+			for(offsetS = indexL; offsetS < len(seq)-11; offsetS++){
+				for(offsetP = 0; offsetP <= len(primers[p])-11; offsetP++){
+					i = mismatch = 0;
+					while((mismatch < 2) & (i+offsetP <= len(primers[p]))){
+						if(primers[p][i+offsetP] != seq[i+offsetS])
+							mismatch++;
+						i++;
+					}
+					// this is because the last bases cannot be a mismatch
+					if(primers[p][i+offsetP] != seq[i+offsetS])
+						i--;
+					// this is because the first bases cannot be a mismatch
+					if(primers[p][offsetP] != seq[offsetS])
+						i--;
+					if(i >= 11){
+						printf("%s %i %i %i\n", primers[p], offsetS, offsetP, i);
+						return (offsetS);
 					}
 				}
 			}
 		}
 	}	
+	return len(seq);
+}
 
-	return 0;
+int trim_poly(char *seq, int n){
+	int i;
+		
+	//for(i = 0; i < len(seq); i++){
 
+	//}
+	return len(seq);
+}
+
+char** load_primers(char *filename){
+	int i;
+	char line[256];
+	FILE* fp = fopen(filename, "r");
+	char ** primers = malloc(100 * sizeof(char*));
+	//char primers[100][255] = { "" };
+
+	i = 0;
+	while (fgets(line, sizeof(line), fp)) {
+		if(line[0] != '>'){
+			remove_newline(line);
+			primers[i] = malloc(255 * sizeof(char));
+			strcpy(primers[i], line);
+			i++;
+		}
+	}
+	fclose(fp);
+	
+	return primers;
+}
+
+void print_usage() {
+    printf("Usage: primer-trimming --left_primers PRIMER_FILE1 --right_primers PRIMER_FILE2 INFILE\n\n");
+    printf("Primer trimming explanation...\n\n");
 }
 
 int main(int argc, char *argv[])
@@ -53,36 +118,78 @@ int main(int argc, char *argv[])
 	gzFile fp;
 	kseq_t *seq;
 	struct my_struct *s;
-	char primers[100][255] = { "" };
+	char primersL[100][255] = { "" };
+	char primersR[100][255] = { "" };
 	int i, l;
-	int index_pos;
-	char delim[] = ":";
-	int pos = 4;
+	int indexL, indexR;
 
 
-	if (argc < 3) {
-		fprintf(stderr, "Usage: %s <primers.tsx> <in.seq>\n", argv[0]);
-		return 1;
+	// COMMAND LINE OPTIONS
+	char infile[255];
+	char *pfilenameL = "";
+	char *pfilenameR = "";
+	int opt = 0;
+	static struct option long_options[] = {
+	  {"left_primers",  required_argument, 0, 'l'},
+	  {"right_primers",  required_argument, 0, 'r'},
+	  {0, 0, 0, 0}
+	};
+	int option_index = 0;
+	while ((opt = getopt_long(argc, argv, "l:r:", long_options, &option_index )) != -1) {
+		switch (opt) {
+			case 'l' : pfilenameL = optarg; 
+				break;
+			case 'r' : pfilenameR = optarg;
+				break;
+			default: print_usage(); 
+				exit(EXIT_FAILURE);
+		}
+	}
+	/* remaining command line arguments (not options). */
+	if (optind < argc){
+		while (optind < argc){
+			strcpy(infile, argv[optind++]);
+			break;
+		}
+ 	}
+	if (pfilenameL[0] == '\0' | pfilenameR[0] == '\0'){
+		print_usage();
+		exit(EXIT_FAILURE);
 	}
 
+	//char** str = load_primers(pfilenameL);
+	//printf("%s\n", str[0]);
+	//exit(0);
 
-	// read in primers
-	char const* const primer_file_name = argv[1];
-	FILE* primer_file_pointer = fopen(primer_file_name, "r");
+	// PRIMERS
+	FILE* pfileL = fopen(pfilenameL, "r");
+	FILE* pfileR = fopen(pfilenameR, "r");
 	char line[256];
 
 	i = 0;
-	while (fgets(line, sizeof(line), primer_file_pointer)) {
+	while (fgets(line, sizeof(line), pfileL)) {
 		if(line[0] != '>'){
 			remove_newline(line);
-			strcpy(primers[i], line);
+			strcpy(primersL[i], line);
 			i++;
 		}
 	}
-	// read in fastq
+	fclose(pfileL);
+	i = 0;
+	while (fgets(line, sizeof(line), pfileR)) {
+		if(line[0] != '>'){
+			remove_newline(line);
+			strcpy(primersR[i], line);
+			i++;
+		}
+	}
+	fclose(pfileR);
+
+
+	// FASTQ
 	//int line_format;
 	//line_format = 0;
-	fp = gzopen(argv[2], "r");
+	fp = gzopen(infile, "r");
 	seq = kseq_init(fp);
 	while ((l = kseq_read(seq)) >= 0) {
 
@@ -96,16 +203,17 @@ int main(int argc, char *argv[])
 		}
 		*/
 		// SEQUENCE
-		index_pos = trim_left(primers, seq->seq.s);
+		indexL = trim_left(primersL, seq->seq.s);
+		indexR = trim_right(primersR, seq->seq.s, indexL);
 		//printf("%s", seq->seq.s);
-		for(i=index_pos; i < strlen(seq->seq.s); i++)
+		for(i=indexL; i < indexR; i++)
 			putchar(seq->seq.s[i]);
 		putchar('\n');
 
 		// QUALITY
 		if (seq->qual.l != seq->seq.l) continue;
 		printf("+\n");
-		for(i=index_pos; i < strlen(seq->seq.s); i++)
+		for(i=indexL; i < indexR; i++)
 			putchar(seq->qual.s[i]);
 		//printf("%s", seq->qual.s);
 		/*
@@ -121,3 +229,4 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
