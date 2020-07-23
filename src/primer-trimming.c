@@ -23,7 +23,7 @@ void remove_newline(char *line){
 		line[new_line] = '\0';
 }
 
-int trim_left(char primers[100][255], char *seq){
+int trim_left(char** primers, char *seq){
 	int p, offsetS, offsetP, i, match, mismatch;
 
 	for(p = 0; p < 100; p++){
@@ -48,7 +48,7 @@ int trim_left(char primers[100][255], char *seq){
 	return 0;
 }
 
-int trim_right(char primers[100][255], char *seq, int indexL){
+int trim_right(char** primers, char *seq, int indexL){
 	int p, offsetS, offsetP, i, match, mismatch;
 
 	if(0){ //for(p = 0; p < 100; p++){
@@ -118,8 +118,6 @@ int main(int argc, char *argv[])
 	gzFile fp;
 	kseq_t *seq;
 	struct my_struct *s;
-	char primersL[100][255] = { "" };
-	char primersR[100][255] = { "" };
 	int i, l;
 	int indexL, indexR;
 
@@ -157,33 +155,12 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	//char** str = load_primers(pfilenameL);
-	//printf("%s\n", str[0]);
-	//exit(0);
-
+	
 	// PRIMERS
-	FILE* pfileL = fopen(pfilenameL, "r");
-	FILE* pfileR = fopen(pfilenameR, "r");
-	char line[256];
-
-	i = 0;
-	while (fgets(line, sizeof(line), pfileL)) {
-		if(line[0] != '>'){
-			remove_newline(line);
-			strcpy(primersL[i], line);
-			i++;
-		}
-	}
-	fclose(pfileL);
-	i = 0;
-	while (fgets(line, sizeof(line), pfileR)) {
-		if(line[0] != '>'){
-			remove_newline(line);
-			strcpy(primersR[i], line);
-			i++;
-		}
-	}
-	fclose(pfileR);
+	//char primersL[100][255] = { "" };
+	//char primersR[100][255] = { "" };
+	char** primersL = load_primers(pfilenameL);
+	char** primersR = load_primers(pfilenameR);
 
 
 	// FASTQ
