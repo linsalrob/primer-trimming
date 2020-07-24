@@ -146,13 +146,11 @@ int main(int argc, char *argv[]){
 	  {0, 0, 0, 0}
 	};
 	int option_index = 0;
-	while ((opt = getopt_long(argc, argv, "l:r:", long_options, &option_index )) != -1) {
+	while ((opt = getopt_long(argc, argv, "l::r::", long_options, &option_index )) != -1) {
 		switch (opt) {
-			case 'l' :
-				primersL = load_primers(optarg);
+			case 'l' : primersL = load_primers(optarg);
 				break;
-			case 'r' :
-				primersR = load_primers(optarg);
+			case 'r' : primersR = load_primers(optarg);
 				break;
 			default: print_usage(); 
 				exit(EXIT_FAILURE);
