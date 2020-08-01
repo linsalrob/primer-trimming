@@ -33,3 +33,7 @@
 
 # CLion
 .idea
+
+# executables
+primer-basecounting
+primer-trimming
