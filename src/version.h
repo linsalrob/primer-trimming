@@ -1,1 +1,1 @@
-#define _version_ 0.1
+#define __version__ 0.1

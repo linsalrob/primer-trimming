@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "kseq.h"
 #include "primer-predictions.h"
+#include "version.h"
 
 KSEQ_INIT(gzFile, gzread)
 
@@ -387,6 +388,7 @@ void print_usage() {
     printf("\t-t predict adapter sequences on the 3' end of the reads\n");
     printf("\t-f fasta output of the primer sequences\n");
     printf("\t-p print abundance of each kmer\n");
+    printf("\t-v print the version and exit\n");
     printf("\nYou probably don't want to see these outputs, but they are here if you do!\n\t-c print kmer counts\n");
     printf("\t-s print short primer sequences that are ignored\n");
     printf("Predict the primer sequences in a fasta/fastq file\n\n");
@@ -410,10 +412,11 @@ int main(int argc, char *argv[]) {
             {"fasta_output", no_argument, 0, 'f'},
             {"three_prime", no_argument, 0, 't'},
             {"debug", no_argument, 0, 'd'},
+            {"version", no_argument, 0, 'v'},
             {0, 0, 0, 0}
     };
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "k:m:pcsdft", long_options, &option_index )) != -1) {
+    while ((opt = getopt_long(argc, argv, "k:m:pcsdftv", long_options, &option_index )) != -1) {
         switch (opt) {
             case 'k' :
                 kmerlen = atoi(optarg);
@@ -433,6 +436,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'd': debug = true;
                 break;
+            case 'v':
+                printf("Version: %f\n", __version__);
+                return 0;
             default: print_usage();
                 exit(EXIT_FAILURE);
         }

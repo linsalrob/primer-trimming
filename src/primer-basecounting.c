@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "kseq.h"
+#include "version.h"
 
 
 
@@ -130,6 +131,10 @@ int main(int argc, char *argv[]){
 	if (argc < 2) {
 		print_usage();
 		return 1;
+	}
+	if (strcmp(argv[1], "-v") == 0) {
+		printf("Version: %f\n", __version__);
+		return 0;
 	}
 
 	initialize_arrays(); // set all the counts to 0
