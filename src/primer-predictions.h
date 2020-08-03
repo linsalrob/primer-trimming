@@ -23,11 +23,13 @@ struct kmercount {
  *
  * Takes a char* for the file name of the fastq file, an int of the kmer length to use, a double for the minimum
  * percent of sequences that all reads should be in.
+ * bool for fasta output for the primer sequences.
  * bool to print the kmer counts, and a bool to re-search through the sequences to list occurrences.
  * bool to print the short primer sequences, and a bool for debugging output
  */
 
-int run(char *, int, double, bool, bool, bool, bool);
+int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool print_kmer_counts, bool print_abundance,
+        bool print_short_primers, bool debug);
 
 /*
  * calculate the hash for a fastq sequence

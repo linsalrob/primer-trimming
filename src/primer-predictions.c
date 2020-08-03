@@ -55,7 +55,7 @@ int sort_by_length(const void *p, const void *q) {
     return (strlen(*(const char * const *)q) - strlen(*(const char * const *)p));
 }
 
-int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, bool print_abundance,
+int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool print_kmer_counts, bool print_abundance,
         bool print_short_primers, bool debug) {
 
     // define our hash table to hold the kmers
@@ -80,7 +80,7 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
     int n = 0; // the number of kmers we find
     int numseqs = 0;
     if (debug)
-        printf("Reading the sequences (first time)\n");
+        fprintf(stderr, "Reading the sequences (first time)\n");
     while ((l = kseq_read(seq)) >= 0) {
         int posn = 0;
         numseqs++;
@@ -126,7 +126,7 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
     // array of elements
 
     if (debug)
-        printf("Converting hash to array\n");
+        fprintf(stderr, "Converting hash to array\n");
 
     size_t max = 0;
     size_t min = 10000000;
@@ -172,11 +172,11 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
     int iteration = 0;
 
     if (debug)
-        printf("Compressing kmers\n");
+        fprintf(stderr, "Compressing kmers\n");
 
+    char *primer;
     while (testanother) {
         iteration++;
-        char *primer;
         int thiscount = 0;
         testanother = false;
         for (int i = 0; i < n; i++) {
@@ -194,7 +194,11 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
             }
         }
 
-        if (!*primer)
+
+        if (debug && !primer)
+            fprintf(stderr, "No primer sequence. Breaking\n");
+
+        if (!primer)
             break;
 
         if (debug)
@@ -255,7 +259,10 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
             }
         }
 
-        if (!*primer)
+        if (debug && !primer)
+            fprintf(stderr, "No primer sequence. Breaking\n");
+
+        if (!primer)
             break;
 
         if (strlen(primer) > kmerlen+2) {
@@ -263,17 +270,21 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
                 // realloc all primers
                 maxprimerposition *= 2;
                 if (debug)
-                    printf("Reallocating memory for all kmers (new size: %d)\n", maxprimerposition);
+                    fprintf(stderr, "Reallocating memory for all kmers (new size: %d)\n", maxprimerposition);
                 allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
             }
+            if (debug)
+                fprintf(stderr, "Saved primer: %s\n", primer);
             allprimers[allprimerposition] = malloc(sizeof(primer));
             strcpy(allprimers[allprimerposition++], primer);
 
         }
         else if (print_short_primers)
                 fprintf(stderr, "Skipped potential primer %s. It is too short (only %ldbp)\n", primer, strlen(primer));
-        free(primer);
+
     }
+    free(primer);
+
 
     if (allprimerposition == 0) {
         printf("No primers could be found. It is probably because minpercent (%f) is too high. Try adding -m 0 to the command line\n", minpercent);
@@ -283,14 +294,14 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
 
     // sort the final primers by length
     if (debug)
-        printf("Sorting primers\n");
+        fprintf(stderr, "Sorting primers\n");
     qsort(allprimers, allprimerposition-1, sizeof(*allprimers), sort_by_length);
 
     if (print_abundance) {
         // we are going to re-read the sequence file. I know this means two iterations, but the alternative is
         // to store the sequences as we read them, which we could do but is a pita.
         if (debug)
-            printf("Printing abundance\n");
+            fprintf(stderr, "Printing abundance\n");
         int counts[allprimerposition];
         for (int i = 0; i<allprimerposition; i++)
             counts[i] = 0;
@@ -313,7 +324,7 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
                         break;
                     }
                     else if (debug)
-                        printf("For %s in %s pos %d but maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(allprimers[i]) + 10);
+                        fprintf(stderr, "For %s in %s pos %d but maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(allprimers[i]) + 10);
                 }
             }
         }
@@ -325,12 +336,16 @@ int run(char * infile, int kmerlen, double minpercent, bool print_kmer_counts, b
         }
         printf("\nTotal primer occurrences: %d in %d sequences (%f%%)\n", total, numseqs, (float)total/numseqs*100);
 
+    } else if (fasta_output) {
+        for (int i = 0; i < allprimerposition; i++)
+            printf(">primer_%d\n%s\n", i, allprimers[i]);
     } else {
         printf("Primers found\n");
         for (int i=0; i < allprimerposition; i++)
             printf("%s\n", allprimers[i]);
 
     }
+
 
 
 
@@ -353,6 +368,7 @@ void print_usage() {
     printf("\t-p print abundance of each kmer\n");
     printf("\t-c print kmer counts\n\n");
     printf("\t-s print short primer sequences that are ignored\n");
+    printf("\t-f fasta output of the primer sequences\n");
     printf("Predict the primer sequences in a fasta/fastq file\n\n");
 }
 
@@ -360,7 +376,7 @@ int main(int argc, char *argv[]) {
 
     // COMMAND LINE OPTIONS
     char infile[255];
-    bool print_abundance = false, print_kmer_counts = false, print_short = false, debug=false;
+    bool print_abundance = false, print_kmer_counts = false, print_short = false, debug=false, fasta_output=false;
     int kmerlen = 8;
     double minpercent = 10;
     int opt = 0;
@@ -370,11 +386,12 @@ int main(int argc, char *argv[]) {
             {"print_abundance",  no_argument, 0, 'p'},
             {"print_kmer_counts",  no_argument, 0, 'c'},
             {"print_short_primers",  no_argument, 0, 's'},
+            {"fasta_output", no_argument, 0, 'f'},
             {"debug", no_argument, 0, 'd'},
             {0, 0, 0, 0}
     };
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "k:m:pcsd", long_options, &option_index )) != -1) {
+    while ((opt = getopt_long(argc, argv, "k:m:pcsdf", long_options, &option_index )) != -1) {
         switch (opt) {
             case 'k' :
                 kmerlen = atoi(optarg);
@@ -387,6 +404,8 @@ int main(int argc, char *argv[]) {
             case 'p' : print_abundance = true;
                 break;
             case 's' : print_short = true;
+                break;
+            case 'f': fasta_output = true;
                 break;
             case 'd': debug = true;
                 break;
@@ -409,8 +428,11 @@ int main(int argc, char *argv[]) {
     }
 
     fprintf(stderr, "Counting kmers in %s\n", infile);
-    fprintf(stderr, "kmer length: %d\nPrint kmers: %d\nPrint abundance: %i\n", kmerlen, print_kmer_counts, print_abundance);
+    fprintf(stderr, "kmer length: %d\n", kmerlen);
     fprintf(stderr, "Minimum abundance percent: %f\n", minpercent);
+    fprintf(stderr, "fasta output: %d\n", fasta_output);
+    fprintf(stderr, "Print kmer counts: %d\n", print_kmer_counts);
+    fprintf(stderr, "Print abundance: %i\n", print_abundance);
     fprintf(stderr, "Print short primers: %d\n\n", print_short);
-    return run(infile, kmerlen, minpercent, print_kmer_counts, print_abundance, print_short, debug);
+    return run(infile, kmerlen, minpercent, fasta_output, print_kmer_counts, print_abundance, print_short, debug);
 }
