@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "kseq.h"
+#include "version.h"
 
 
 //#include "uthash.h"
@@ -141,17 +142,21 @@ int main(int argc, char *argv[]){
 	char** primersR = NULL;
 	int opt = 0;
 	static struct option long_options[] = {
-	  {"left_primers",  optional_argument, 0, 'l'},
-	  {"right_primers",  optional_argument, 0, 'r'},
+	  {"left_primers",  required_argument, 0, 'l'},
+	  {"right_primers",  required_argument, 0, 'r'},
+	  {"version", no_argument, 0, 'v'},
 	  {0, 0, 0, 0}
 	};
 	int option_index = 0;
-	while ((opt = getopt_long(argc, argv, "l::r::", long_options, &option_index )) != -1) {
+	while ((opt = getopt_long(argc, argv, "l:r:v", long_options, &option_index )) != -1) {
 		switch (opt) {
 			case 'l' : primersL = load_primers(optarg);
 				break;
 			case 'r' : primersR = load_primers(optarg);
 				break;
+			case 'v':
+				printf("Version: %f\n", __version__);
+				return 0;
 			default: print_usage(); 
 				exit(EXIT_FAILURE);
 		}
@@ -168,7 +173,6 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	
 	// FASTQ
 	//int line_format;
 	//line_format = 0;
