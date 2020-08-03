@@ -92,7 +92,6 @@ int trim_poly(char *seq, int n){
 char** load_primers(char *filename){
 	int i, n;
 	char line[256];
-	printf("Reading primers from %s\n", filename);
 	FILE* fp = fopen(filename, "r");
 
 	if(fp ==0){
@@ -142,8 +141,8 @@ int main(int argc, char *argv[]){
 	char** primersR = NULL;
 	int opt = 0;
 	static struct option long_options[] = {
-	  {"left_primers",  optional_argument, 0, 'l'},
-	  {"right_primers",  optional_argument, 0, 'r'},
+	  {"left_primers",  required_argument, 0, 'l'},
+	  {"right_primers",  required_argument, 0, 'r'},
 	  {0, 0, 0, 0}
 	};
 	int option_index = 0;
