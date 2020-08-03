@@ -55,7 +55,7 @@ int sort_by_length(const void *p, const void *q) {
     return (strlen(*(const char * const *)q) - strlen(*(const char * const *)p));
 }
 
-int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool print_kmer_counts, bool print_abundance,
+int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
         bool print_short_primers, bool debug) {
 
     // define our hash table to hold the kmers
@@ -82,9 +82,21 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
     if (debug)
         fprintf(stderr, "Reading the sequences (first time)\n");
     while ((l = kseq_read(seq)) >= 0) {
-        int posn = 0;
         numseqs++;
-        while (posn + kmerlen < 20) {
+        double posn = 0;
+        if (three_prime) {
+            posn = strlen(seq->seq.s) - 20 - kmerlen;
+        }
+        bool moreseqs = true;
+        while (moreseqs) {
+            if (three_prime) {
+                if (posn + kmerlen == strlen(seq->seq.s))
+                    moreseqs = false;
+            }
+            else {
+                if (posn > 20)
+                    moreseqs = false;
+            }
             char kmer[kmerlen + 1];
             substr(seq->seq.s, kmer, posn, posn + kmerlen);
             // do we have this in our array?
@@ -106,8 +118,10 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
                 struct kmercount *newk;
                 newk = (struct kmercount *) malloc(sizeof(*newk));
 
-                newk->kmer = malloc(strlen(kmer) + 1);
-                strcpy(newk->kmer, kmer);
+                newk->kmer = strdup(kmer);
+                //newk->kmer = malloc(strlen(kmer) + 1);
+                //strcpy(newk->kmer, kmer);
+
                 newk->count = 1;
                 newk->used = false;
                 // add first for the kmer to the hash
@@ -117,7 +131,6 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
             }
             posn++;
         }
-
     }
     kseq_destroy(seq);
     gzclose(fp);
@@ -186,8 +199,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
                     continue;
                 }
                 kcarray[i]->used = true;
-                primer = malloc(strlen(kcarray[i]->kmer)+1);
-                strcpy(primer, kcarray[i]->kmer);
+                primer = strdup(kcarray[i]->kmer);
                 thiscount = kcarray[i]->count;
                 testanother = true;
                 break;
@@ -274,8 +286,8 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
                 allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
             }
             if (debug)
-                fprintf(stderr, "Saved primer: %s\n", primer);
-            allprimers[allprimerposition] = malloc(sizeof(primer));
+                fprintf(stderr, "Saved primer: %s of size %ld\n", primer, sizeof(primer));
+            allprimers[allprimerposition] = strdup(primer);
             strcpy(allprimers[allprimerposition++], primer);
 
         }
@@ -285,12 +297,10 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
     }
     free(primer);
 
-
     if (allprimerposition == 0) {
         printf("No primers could be found. It is probably because minpercent (%f) is too high. Try adding -m 0 to the command line\n", minpercent);
         return 0;
     }
-
 
     // sort the final primers by length
     if (debug)
@@ -319,11 +329,20 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool p
                 char *offset = strstr(seq->seq.s, allprimers[i]);
                 if (offset) {
                     int pos = (offset - seq->seq.s) + 1;
-                    if (pos < strlen(allprimers[i]) + 10) {
-                        counts[i]++;
-                        break;
+                    if (three_prime) {
+                        if (debug)
+                            fprintf(stderr, "For %s in %s pos %d but strlen %ld and maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(seq->seq.s), strlen(allprimers[i]) + 10);
+                        if ( strlen(seq->seq.s) - pos < (20 + kmerlen)) {
+                            counts[i]++;
+                            break;
+                        }
+                    } else {
+                        if (pos < strlen(allprimers[i]) + 20) {
+                            counts[i]++;
+                            break;
+                        }
                     }
-                    else if (debug)
+                    if (debug)
                         fprintf(stderr, "For %s in %s pos %d but maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(allprimers[i]) + 10);
                 }
             }
@@ -364,11 +383,12 @@ unsigned hash (char *s) {
 void print_usage() {
     printf("Usage: primer-predictions [OPTIONS] Sequence File (fasta or fastq)\n");
     printf("\t-k kmer length (default 8)\n");
-    printf("\t-m minimum percent of the sequences that a kmer must appear in (default: 10)\n");
-    printf("\t-p print abundance of each kmer\n");
-    printf("\t-c print kmer counts\n\n");
-    printf("\t-s print short primer sequences that are ignored\n");
+    printf("\t-m minimum percent of the sequences that a kmer must appear in (default: 1%%)\n");
+    printf("\t-t predict adapter sequences on the 3' end of the reads\n");
     printf("\t-f fasta output of the primer sequences\n");
+    printf("\t-p print abundance of each kmer\n");
+    printf("\nYou probably don't want to see these outputs, but they are here if you do!\n\t-c print kmer counts\n");
+    printf("\t-s print short primer sequences that are ignored\n");
     printf("Predict the primer sequences in a fasta/fastq file\n\n");
 }
 
@@ -377,8 +397,9 @@ int main(int argc, char *argv[]) {
     // COMMAND LINE OPTIONS
     char infile[255];
     bool print_abundance = false, print_kmer_counts = false, print_short = false, debug=false, fasta_output=false;
+    bool three_prime = false;
     int kmerlen = 8;
-    double minpercent = 10;
+    double minpercent = 1;
     int opt = 0;
     static struct option long_options[] = {
             {"kmer_length",  required_argument, 0, 'k'},
@@ -387,11 +408,12 @@ int main(int argc, char *argv[]) {
             {"print_kmer_counts",  no_argument, 0, 'c'},
             {"print_short_primers",  no_argument, 0, 's'},
             {"fasta_output", no_argument, 0, 'f'},
+            {"three_prime", no_argument, 0, 't'},
             {"debug", no_argument, 0, 'd'},
             {0, 0, 0, 0}
     };
     int option_index = 0;
-    while ((opt = getopt_long(argc, argv, "k:m:pcsdf", long_options, &option_index )) != -1) {
+    while ((opt = getopt_long(argc, argv, "k:m:pcsdft", long_options, &option_index )) != -1) {
         switch (opt) {
             case 'k' :
                 kmerlen = atoi(optarg);
@@ -406,6 +428,8 @@ int main(int argc, char *argv[]) {
             case 's' : print_short = true;
                 break;
             case 'f': fasta_output = true;
+                break;
+            case 't': three_prime = true;
                 break;
             case 'd': debug = true;
                 break;
@@ -431,8 +455,9 @@ int main(int argc, char *argv[]) {
     fprintf(stderr, "kmer length: %d\n", kmerlen);
     fprintf(stderr, "Minimum abundance percent: %f\n", minpercent);
     fprintf(stderr, "fasta output: %d\n", fasta_output);
+    fprintf(stderr, "identify adapters on the 3' end: %d\n", three_prime);
     fprintf(stderr, "Print kmer counts: %d\n", print_kmer_counts);
     fprintf(stderr, "Print abundance: %i\n", print_abundance);
     fprintf(stderr, "Print short primers: %d\n\n", print_short);
-    return run(infile, kmerlen, minpercent, fasta_output, print_kmer_counts, print_abundance, print_short, debug);
+    return run(infile, kmerlen, minpercent, fasta_output, three_prime, print_kmer_counts, print_abundance, print_short, debug);
 }
