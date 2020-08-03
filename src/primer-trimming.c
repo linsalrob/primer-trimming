@@ -92,6 +92,7 @@ int trim_poly(char *seq, int n){
 char** load_primers(char *filename){
 	int i, n;
 	char line[256];
+	printf("Reading primers from %s\n", filename);
 	FILE* fp = fopen(filename, "r");
 
 	if(fp ==0){
@@ -146,7 +147,7 @@ int main(int argc, char *argv[]){
 	  {0, 0, 0, 0}
 	};
 	int option_index = 0;
-	while ((opt = getopt_long(argc, argv, "l::r::", long_options, &option_index )) != -1) {
+	while ((opt = getopt_long(argc, argv, "l:r:", long_options, &option_index )) != -1) {
 		switch (opt) {
 			case 'l' : primersL = load_primers(optarg);
 				break;
@@ -168,7 +169,6 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 
-	
 	// FASTQ
 	//int line_format;
 	//line_format = 0;

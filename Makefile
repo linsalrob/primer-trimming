@@ -14,5 +14,8 @@ primer-trimming: $(SDIR)primer-trimming.c
 primer-basecounting: $(SDIR)primer-basecounting.c
 	$(CC) $(CFLAGS) $^ -o $@ -lz -lm -g
 
+primer-predictions: $(SDIR)primer-predictions.c
+	$(CC) $(CFLAGS) $^ -o $@ -lz -lm -g  -O0
+
 clean:
-	rm -f primer-trimming primer-basecounting
+	rm -f primer-trimming primer-basecounting primer-predictions
