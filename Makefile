@@ -6,7 +6,7 @@ SDIR=./src/
 
 LIBS=-lm
 
-all: primer-trimming primer-basecounting
+all: primer-trimming primer-basecounting primer-predictions
 
 primer-trimming: $(SDIR)primer-trimming.c
 	$(CC) $(CFLAGS) $^ -o $@ -lz -lm -g
