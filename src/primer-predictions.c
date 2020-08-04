@@ -307,17 +307,18 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                 if (strcmp(allprimers[i], primer) == 0)
                     addthis = false;
             }
-            if (*allprimerposition == maxprimerposition) {
-                // realloc all primers
-                maxprimerposition *= 2;
+            if (addthis) {
+                if (*allprimerposition == maxprimerposition) {
+                    // realloc all primers
+                    maxprimerposition *= 2;
+                    if (debug)
+                        fprintf(stderr, "Reallocating memory for all kmers (new size: %d)\n", maxprimerposition);
+                    allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
+                }
                 if (debug)
-                    fprintf(stderr, "Reallocating memory for all kmers (new size: %d)\n", maxprimerposition);
-                allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
-            }
-            if (debug)
-                fprintf(stderr, "Saved primer: %s of size %ld\n", primer, sizeof(primer));
-            if (addthis)
+                    fprintf(stderr, "Saved primer: %s of size %ld\n", primer, sizeof(primer));
                 allprimers[(*allprimerposition)++] = strdup(primer);
+            }
         }
         else if (print_short_primers)
                 fprintf(stderr, "Skipped potential primer %s. It is too short (only %ldbp)\n", primer, strlen(primer));
