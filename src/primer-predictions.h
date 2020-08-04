@@ -29,7 +29,7 @@ struct kmercount {
  */
 
 int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
-        bool print_short_primers, bool debug);
+        bool print_short_primers, bool debug, char **allprimers, int *allprimerposition);
 
 /*
  * calculate the hash for a fastq sequence
@@ -43,5 +43,23 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
 
 unsigned hash (char *);
 
+
+/*
+ * Extract a substring of seq from start to stop and put it in kmer
+ */
+void substr(char* seq, char * kmer, int start, int stop);
+
+/*
+ * Compare two struct kmercount objects and return the one with the most counts first
+ * Used by qsort to sort an array of kmercount objects by count (highest count first)
+ */
+
+int comparator(const void *p, const void *q);
+
+/*
+ * Compare two strings and return the longest one first
+ * Used in quick sort to sort an array of sequences by length (longest first)
+ */
+int sort_by_length(const void *p, const void *q);
 
 #endif //PRIMER_PREDICTIONS_H
