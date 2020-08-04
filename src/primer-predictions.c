@@ -211,7 +211,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
     if (debug)
         fprintf(stderr, "Compressing kmers\n");
 
-    char *primer;
+    char *primer = NULL;
     while (testanother) {
         iteration++;
         int thiscount = 0;
@@ -256,11 +256,10 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                 substr(primer, pbeg, 0, kmerlen - 1);
 
                 if (strcmp(kbeg, pbeg) == 0) {
-                    int x = 0;
                     // char tmp[strlen(primer) + 1];
                     char tmp[strlen(primer) + 1];
                     tmp[0] = kcarray[i]->kmer[0];
-                    for (int j = 0; j <= strlen(primer); j++)
+                    for (unsigned long j = 0; j <= strlen(primer); j++)
                         tmp[j + 1] = primer[j];
                     primer = (char *) realloc(primer, strlen(tmp)+1);
                     strcpy(primer, tmp);
@@ -279,7 +278,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
 
                 if (strcmp(kend, pend) == 0) {
                     char tmp[strlen(primer) + 10];
-                    int j = 0;
+                    unsigned long j = 0;
                     while (j < strlen(primer)) {
                         tmp[j] = primer[j];
                         j++;
@@ -301,7 +300,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
         if (!primer)
             break;
 
-        if (strlen(primer) > kmerlen+2) {
+        if ((int) strlen(primer) > kmerlen+2) {
             bool addthis = true;
             for (int i=0; i < *allprimerposition; i++) {
                 if (strcmp(allprimers[i], primer) == 0)
@@ -351,17 +350,15 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
 
         fp = gzopen(infile, "r");
         seq = kseq_init(fp);
-        int maxoccurrence = 1; // the maximum value
-        int n = 0; // the number of kmers we find
         while ((l = kseq_read(seq)) >= 0) {
             for (int i=0; i<*allprimerposition; i++) {
                 char *offset = strstr(seq->seq.s, allprimers[i]);
                 if (offset) {
-                    int pos = (offset - seq->seq.s) + 1;
+                    unsigned long pos = (offset - seq->seq.s) + 1;
                     if (three_prime) {
                         if (debug)
-                            fprintf(stderr, "For %s in %s pos %d but strlen %ld and maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(seq->seq.s), strlen(allprimers[i]) + 10);
-                        if ( strlen(seq->seq.s) - pos < (20 + kmerlen)) {
+                            fprintf(stderr, "For %s in %s pos %ld but strlen %ld and maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(seq->seq.s), strlen(allprimers[i]) + 10);
+                        if (strlen(seq->seq.s) - pos < (unsigned long) (20 + kmerlen)) {
                             counts[i]++;
                             break;
                         }
@@ -372,7 +369,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                         }
                     }
                     if (debug)
-                        fprintf(stderr, "For %s in %s pos %d but maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(allprimers[i]) + 10);
+                        fprintf(stderr, "For %s in %s pos %ld but maxoffset %ld\n", allprimers[i], seq->name.s, pos, strlen(allprimers[i]) + 10);
                 }
             }
         }
@@ -501,4 +498,5 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < allprimerposition; i++)
             printf("Primer %d: %s\n", i, allprimers[i]);
     }
+    return ro;
 }
