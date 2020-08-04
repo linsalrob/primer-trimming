@@ -37,7 +37,7 @@ primer_predictions(PyObject *self, PyObject *args) {
     allprimers = malloc(sizeof(*allprimers) * 1); // initializing with 1 member, but will realloc later
     int allprimerposition=0;
 
-    int ro = run(infile, kmerlen, minpercent, fasta_output, three_prime, print_kmer_counts, print_abundance, print_short, debug, allprimers, &allprimerposition);
+    int ro = predict_primers(infile, kmerlen, minpercent, fasta_output, three_prime, print_kmer_counts, print_abundance, print_short, debug, allprimers, &allprimerposition);
     if (ro != 0) {
         fprintf(stderr, "Error: Running the primer search returned %d\n", ro);
         return NULL;

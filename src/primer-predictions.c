@@ -77,7 +77,7 @@ int sort_by_length(const void *p, const void *q) {
  *
  */
 
-int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
+int predict_primers(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
         bool print_short_primers, bool debug, char **allprimers, int *allprimerposition) {
 
     // define our hash table to hold the kmers
@@ -488,7 +488,8 @@ int main(int argc, char *argv[]) {
     int allprimerposition = 0;
 
 
-    int ro = run(infile, kmerlen, minpercent, fasta_output, three_prime, print_kmer_counts, print_abundance, print_short, debug, allprimers, &allprimerposition);
+    int ro = predict_primers(infile, kmerlen, minpercent, fasta_output, three_prime, print_kmer_counts,
+            print_abundance, print_short, debug, allprimers, &allprimerposition);
 
     if (!print_abundance && !fasta_output) {
         printf("Primers found\n");

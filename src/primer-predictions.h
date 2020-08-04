@@ -28,8 +28,9 @@ struct kmercount {
  * bool to print the short primer sequences, and a bool for debugging output
  */
 
-int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
-        bool print_short_primers, bool debug, char **allprimers, int *allprimerposition);
+int predict_primers(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime,
+        bool print_kmer_counts, bool print_abundance, bool print_short_primers, bool debug,
+        char **allprimers, int *allprimerposition);
 
 /*
  * calculate the hash for a fastq sequence
