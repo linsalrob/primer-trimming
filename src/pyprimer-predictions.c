@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "primer-predictions.h"
 #include "pyprimer-predictions.h"
+#include "pyprinseq.h"
 
 
 
@@ -26,8 +27,6 @@ primer_predictions(PyObject *self, PyObject *args) {
     /* Parse arguments */
     // , , &fasta_output, &print_kmer_counts, &print_abundance, &print_short, &debug
     if(!PyArg_ParseTuple(args, "sidbb", &infile, &kmerlen, &minpercent, &three_prime, &debug)) {
-//    if(!PyArg_ParseTuple(args, "si", &infile, &kmerlen)) {
-
             PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
         return NULL;
     }
