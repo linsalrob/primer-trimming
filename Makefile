@@ -10,7 +10,7 @@ LIBS=-lm
 
 all: primer-trimming primer-basecounting primer-predictions
 
-objects = $(SDIR)primer-trimming.o $(DIR)trimprimers.o $(SDIR)primer-predictions.c $(SDIR)predictprimers.c
+objects = $(SDIR)primer-trimming.o $(SDIR)trimprimers.o $(SDIR)primer-predictions.o $(SDIR)predictprimers.o
 $(objects): %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ $(FLAGS)
 
