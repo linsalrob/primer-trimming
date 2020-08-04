@@ -91,6 +91,10 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
         exit(-1);
     }
 
+    // initilize the table to be empty
+    for (int i = 0; i<table_size; i++)
+        kchash[i] = NULL;
+
     gzFile fp;
     kseq_t *seq;
     //struct my_struct *s;
@@ -120,11 +124,12 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                     moreseqs = false;
             }
             char kmer[kmerlen + 1];
-            substr(seq->seq.s, kmer, posn, posn + kmerlen);
+            substr(seq->seq.s, kmer, posn, (posn + kmerlen));
             // do we have this in our array?
-            unsigned h = hash(kmer) % table_size;
+            unsigned int h = hash(kmer) % table_size;
             struct kmercount *ptr = kchash[h];
             int matched = 0;
+
             while (ptr != NULL) {
                 if (strcmp(ptr->kmer, kmer) == 0) {
                     matched = 1;
@@ -135,11 +140,9 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                 }
                 ptr = ptr->next;
             }
-
             if (!matched) {
                 struct kmercount *newk;
                 newk = (struct kmercount *) malloc(sizeof(*newk));
-
                 newk->kmer = strdup(kmer);
                 //newk->kmer = malloc(strlen(kmer) + 1);
                 //strcpy(newk->kmer, kmer);
@@ -163,8 +166,6 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
     if (debug)
         fprintf(stderr, "Converting hash to array\n");
 
-    size_t max = 0;
-    size_t min = 10000000;
     struct kmercount **kcarray;
     kcarray = malloc(sizeof(*kcarray) * n);
 
@@ -173,18 +174,16 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
         struct kmercount *ptr = kchash[i];
         while (ptr != NULL) {
             kcarray[p++] = ptr;
-            if (sizeof(ptr) > max)
-                max = sizeof(ptr);
-            if (sizeof(ptr) < min)
-                min = sizeof(ptr);
             ptr = ptr->next;
         }
     }
     // remove the hash now we don't need it
     free(kchash);
 
-    qsort(kcarray, n, sizeof(*kcarray), comparator);
+    if (debug)
+        fprintf(stderr, "Quick sorting\n");
 
+    qsort(kcarray, n, sizeof(*kcarray), comparator);
 
     if (print_kmer_counts) {
         for (int i = 0; i < n; i++) {
@@ -202,7 +201,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
 
     int maxprimerposition = 1000;
     //allprimers = malloc(sizeof(*allprimers) * maxprimerposition);
-    allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
+    //allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
     *allprimerposition = 0;
 
     bool testanother = true;
@@ -314,8 +313,6 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
                         fprintf(stderr, "Reallocating memory for all kmers (new size: %d)\n", maxprimerposition);
                     allprimers = (char **) realloc(allprimers, sizeof(*allprimers) * maxprimerposition);
                 }
-                if (debug)
-                    fprintf(stderr, "Saved primer: %s of size %ld\n", primer, sizeof(primer));
                 allprimers[(*allprimerposition)++] = strdup(primer);
             }
         }
@@ -390,8 +387,8 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
 }
 
 
-unsigned hash (char *s) {
-    unsigned hashval;
+unsigned int hash (char *s) {
+    unsigned int hashval;
 
     for (hashval=0; *s != '\0'; s++)
         hashval = *s + 31 * hashval;
@@ -487,7 +484,7 @@ int main(int argc, char *argv[]) {
 
     // for the results
     char **allprimers;
-    allprimers = malloc(sizeof(*allprimers) * 1); // initializing with 1 member, but will realloc later
+    allprimers = malloc(sizeof(*allprimers) * 1000); // initializing with max 1000 primer sequences.
     int allprimerposition = 0;
 
 
@@ -498,5 +495,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < allprimerposition; i++)
             printf("Primer %d: %s\n", i, allprimers[i]);
     }
+
+    free(allprimers);
     return ro;
 }

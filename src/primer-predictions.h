@@ -41,7 +41,7 @@ int run(char * infile, int kmerlen, double minpercent, bool fasta_output, bool t
  * You still need to mod this on the table size
  */
 
-unsigned hash (char *);
+unsigned int hash (char *);
 
 
 /*
