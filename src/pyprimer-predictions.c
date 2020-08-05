@@ -5,12 +5,9 @@
 
 #include <Python.h>
 #include <stdbool.h>
-#include "primer-predictions.h"
+#include "predictprimers.h"
 #include "pyprimer-predictions.h"
 #include "pyprinseq.h"
-
-
-
 
 
 PyObject *
@@ -26,7 +23,7 @@ primer_predictions(PyObject *self, PyObject *args) {
 
     /* Parse arguments */
     // , , &fasta_output, &print_kmer_counts, &print_abundance, &print_short, &debug
-    if(!PyArg_ParseTuple(args, "sidbb", &infile, &kmerlen, &minpercent, &three_prime, &debug)) {
+    if(!PyArg_ParseTuple(args, "sidb", &infile, &kmerlen, &minpercent, &three_prime)) {
             PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
         return NULL;
     }
@@ -47,6 +44,7 @@ primer_predictions(PyObject *self, PyObject *args) {
 
     for (int i=0; i < allprimerposition; i++) {
         PyObject *item = Py_BuildValue("s", allprimers[i]);
+        fprintf(stderr, "Appended %s\n", allprimers[i]);
         PyList_Append(result, item);
     }
 
@@ -55,7 +53,7 @@ primer_predictions(PyObject *self, PyObject *args) {
     for (int i=0; i<allprimerposition; i++)
         free(allprimers[i]);
 
-    //free(allprimers);
+    free(allprimers);
     return result;
 }
 

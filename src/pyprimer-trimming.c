@@ -3,7 +3,7 @@
 //
 #include <Python.h>
 #include "pyprimer-trimming.h"
-#include "primer-trimming.h"
+#include "trimprimers.h"
 #include "pyprinseq.h"
 
 PyObject *
@@ -16,9 +16,15 @@ pyprimer_trimming(PyObject *self, PyObject *args) {
     char *leftPrimer = NULL;
     char *rightPrimer = NULL;
 
-    if(!PyArg_ParseTuple(args, "sss", &infile, &leftPrimer, &rightPrimer)) {
+    if(!PyArg_ParseTuple(args, "szz", &infile, &leftPrimer, &rightPrimer)) {
         PyErr_SetString(PyExc_RuntimeError, "Could not parse the arguments to python_input");
         return NULL;
+    }
+
+    if (0) {
+        fprintf(stderr, "infile: %s\n", infile);
+        fprintf(stderr, "left primer file: %s\n", leftPrimer);
+        fprintf(stderr, "right primer file: %s\n", rightPrimer);
     }
 
     if (leftPrimer != NULL)

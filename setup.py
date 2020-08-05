@@ -1,10 +1,13 @@
 from distutils.core import setup, Extension
 
 pypp = Extension('PyPrinseq',
-                    sources = ['src/pyprimer-predictions.c',
-                               'src/primer-predictions.c',
-                              'src/pyprimer-trimming.c',
-                              'src/primer-trimming.c'])
+                 sources = [
+                     'src/pyprinseq.c',
+                     'src/predictprimers.c',
+                     'src/trimprimers.c',
+                     'src/pyprimer-predictions.c',
+                     'src/pyprimer-trimming.c',
+                 ])
 
 setup (name = 'PyPrinseq',
        version = '1.0',
