@@ -1,3 +1,11 @@
+[![Edwards Lab](https://img.shields.io/badge/Bioinformatics-EdwardsLab-03A9F4)](https://edwards.sdsu.edu/research)
+[![DOI](https://www.zenodo.org/badge/280457997.svg)](https://www.zenodo.org/badge/latestdoi/280457997)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub language count](https://img.shields.io/github/languages/count/linsalrob/PhiSpy)
+[![Downloads](https://img.shields.io/github/downloads/linsalrob/PhiSpy/total?style=flat-square)](https://github.com/linsalrob/PhiSpy/releases)
+
+
+
 # PRINSEQ Primer Trimming
 
 This is a standalone prinseq package for the identification and removal of primer and adapter sequences from your fastq files. It is written in ANSI C and designed to be fast, memory efficient, and portable. We have also aimed to make it accessible!
