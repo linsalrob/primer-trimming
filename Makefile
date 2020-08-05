@@ -26,14 +26,14 @@ $(objects): %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ $(FLAGS)
 
 primer-trimming: $(SDIR)primer-trimming.c $(SDIR)trimprimers.c
-	$(CC) -o $@ $^ $(LFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 primer-basecounting: $(SDIR)primer-basecounting.c
 	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS)
 
 
 primer-predictions: $(SDIR)primer-predictions.c $(SDIR)predictprimers.c
-	$(CC) -o $@ $^ $(LFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 .PHONY: clean
 
