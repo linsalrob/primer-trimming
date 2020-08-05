@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "kseq.h"
 #include "predictprimers.h"
 #include "version.h"
@@ -78,6 +79,13 @@ int sort_by_length(const void *p, const void *q) {
 
 int predict_primers(char * infile, int kmerlen, double minpercent, bool fasta_output, bool three_prime, bool print_kmer_counts, bool print_abundance,
         bool print_short_primers, bool debug, char **allprimers, int *allprimerposition) {
+
+    if( access( infile, R_OK ) == -1 ) {
+        // file doesn't exist
+        fprintf(stderr, "ERROR: The file %s can not be found. Please check the file path\n");
+        return 1;
+    }
+
 
     // define our hash table to hold the kmers
     struct kmercount **kchash;
