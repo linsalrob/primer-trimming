@@ -82,7 +82,7 @@ int predict_primers(char * infile, int kmerlen, double minpercent, bool fasta_ou
 
     if( access( infile, R_OK ) == -1 ) {
         // file doesn't exist
-        fprintf(stderr, "ERROR: The file %s can not be found. Please check the file path\n");
+        fprintf(stderr, "ERROR: The file %s can not be found. Please check the file path\n", infile);
         return 1;
     }
 
