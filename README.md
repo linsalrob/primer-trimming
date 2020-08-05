@@ -1,6 +1,6 @@
 # PRINSEQ Primer Trimming
 
-This is a standalone package for the identification and removal of primer and adapter sequences from your fastq files. It is written in ANSI C and designed to be fast, memory efficient, and portable. 
+This is a standalone prinseq package for the identification and removal of primer and adapter sequences from your fastq files. It is written in ANSI C and designed to be fast, memory efficient, and portable. We have also aimed to make it accessible!
 
 ## What is it?
 Most DNA sequencing approaches use _artificial sequences_ such as adapters, primers, linkers, or MID tags, small sequences that are added to the beginning or ends of the DNA samples before they are sequenced. Here, we call them _artificial sequences_ so we don't have to keep writing adapters, primers, linkers, or MID tags!
@@ -32,7 +32,9 @@ and if you want to check for 3' adapters:
 ```bash
 ./primer-trimming -l primers.fasta -r adapters.fasta sequences.fastq.gz > trimmed.fastq
 ```
+## I prefer Python
 
+We have you covered. Just follow the [python installation](#python-installation) instructions, and you can access the C code straight from Python. You have all the advantages of speed, all the ease of writing code in Python.
 
 ### Predicting primers
 
@@ -59,12 +61,37 @@ The `-l` and `-r` options need a fasta format file, and so you can use the outpu
 
 ## Installation
 
-You can install from source, just clone this git repo and use make:
+There are two ways to install this code. You can either install the standalone applications using `GNU Make` or install the Python packages using `setup.py`. Or you can install both!
+
+### Python Installation
+
+We will release a PyPi version soon, we are just finalizing some bug tests and reconsidering the whole name thing!
+
+Clone the repository, and use pythons setup.py to build and install. Note in this example, we use the `--user` flag to just install in our local python environment.
+
+```bash
+git clone https://github.com/linsalrob/primer-trimming.git
+cd primer-trimming
+python3 setup.py install --user
+```
+
+
+### C executable installation
+
+You can install the executables from source, you just need GCC. Clone this git repo and use make:
 
 ```bash
 git clone https://github.com/linsalrob/primer-trimming.git
 cd primer-trimming
 make all
+sudo make install
 ```
 
-Conda installation is coming soon (bug Rob about it!)
+This will install `primer-trimming` and  `primer-predictions` in `/usr/local/bin` (by default).
+
+
+Both PyPi and Conda installations are coming soon (bug Rob about it!)
+
+# Contributors
+
+Most of the code was written by Kate McNair, with some help from Adrian Cantu and Rob Edwards.
