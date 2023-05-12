@@ -35,5 +35,4 @@ int trim_poly(char *seq, int n);
 char** load_primers(char *filename);
 
 
-
 #endif //PRIMER_TRIMMING_PRIMER_TRIMMING_H
