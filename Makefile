@@ -14,14 +14,14 @@ ifeq ($(PREFIX),)
     PREFIX := /usr/local
 endif
 
-all: primer-trimming primer-basecounting primer-predictions
+all: primer-trimming primer-basecounting primer-predictions find-primers
 
 install: primer-trimming primer-predictions
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
 
 
-objects = $(SDIR)primer-trimming.o $(SDIR)trimprimers.o $(SDIR)primer-predictions.o $(SDIR)predictprimers.o
+objects = $(SDIR)primer-trimming.o $(SDIR)trimprimers.o $(SDIR)primer-predictions.o $(SDIR)predictprimers.o $(DIR)find-primers.o
 $(objects): %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ $(FLAGS)
 
@@ -31,8 +31,16 @@ primer-trimming: $(SDIR)primer-trimming.c $(SDIR)trimprimers.c
 primer-basecounting: $(SDIR)primer-basecounting.c
 	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS)
 
+compare-seqs: $(SDIR)print-sequences.c $(SDIR)compare-seqs.c
+	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS)
 
 primer-predictions: $(SDIR)primer-predictions.c $(SDIR)predictprimers.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+test: $(SDIR)print-sequences.c $(SDIR)store-primers.c $(SDIR)seqs_to_ints.c $(SDIR)print-sequences.c $(SDIR)test.c
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+find-primers: $(SDIR)print-sequences.c $(SDIR)store-primers.c $(SDIR)seqs_to_ints.c $(SDIR)print-sequences.c $(SDIR)find-primers.c
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 .PHONY: clean
