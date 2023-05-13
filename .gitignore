@@ -35,6 +35,8 @@
 .idea
 
 # executables
-primer-basecounting
-primer-trimming
-primer-predictions
+bin/
+obj/
+
+# vim
+*.swp
