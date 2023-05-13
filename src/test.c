@@ -1,10 +1,11 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "colours.h"
 #include "compare-seqs.h"
+#include "match-adapters.h"
 #include "print-sequences.h"
-
 
 
 void test_primers() {
@@ -53,9 +54,24 @@ void test_comparisons() {
 
 }
 
+void match_adapters() {
+	fprintf(stderr, "%sLooking for adapters\n%s", GREEN, ENDC);
+	char* primerfile = "primers/mgi.fa";
+
+	kmer_bst_t *primers;
+	primers = (kmer_bst_t *) malloc(sizeof(*primers));
+	fprintf(stderr, "%sSize of primers: %ld Size of struct: %ld%s\n", BLUE, sizeof(*primers), sizeof(kmer_bst_t*), ENDC);
+	int kmer = 24; // our max primer length
+
+	encode_primers(primerfile, primers, kmer, 1);
+	char* seqfile = "fastq/913873_20180417_S_R1.sample.fastq.gz";
+	search_seqfile_for_primers(seqfile, primers, kmer, 1);
+}
+
 
 int main(int argc, char *argv[]) {
-	test_primers();
-	test_comparisons();
+	// test_primers();
+	// test_comparisons();
+	match_adapters();
 }
 
