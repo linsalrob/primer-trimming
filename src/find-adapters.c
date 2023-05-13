@@ -68,19 +68,16 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	fprintf(stderr, "We will parse primers from %s, look for them in %s \n", primerfile, fqfile);
-	if (no_reverse)
-		fprintf(stderr, "\tWe will only use the forward sequences\n");
-	else
-		fprintf(stderr, "\tWe will look at forward and reverse\n");
-	fprintf(stderr, "\n\n");
-
 	kmer_bst_t *primers;
 	primers = (kmer_bst_t *) malloc(sizeof(*primers));
 	
 	int kmer = 24; // our max primer length
 
-	encode_primers(primerfile, primers, kmer, 0);
+	bool do_reverse = true;
+	if (no_reverse)
+		do_reverse = false;
+
+	encode_primers(primerfile, primers, kmer, do_reverse, 0);
 	search_seqfile_for_primers(fqfile, primers, kmer, 0);
 
 	free(primerfile);
