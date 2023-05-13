@@ -3,8 +3,9 @@ CC=gcc
 CFLAGS=-g -Wall -O2 -Wno-return-type -Wno-unused-variable -Wno-unused-function -I$(IDIR)
 LFLAGS= -lz -lm -g
 
-ODIR=./src/
+ODIR=./obj/
 SDIR=./src/
+BDIR=./bin/
 
 LIBS=-lm
 
@@ -14,37 +15,66 @@ ifeq ($(PREFIX),)
     PREFIX := /usr/local
 endif
 
-all: primer-trimming primer-basecounting primer-predictions find-primers
+EXEC=primer-trimming primer-basecounting primer-predictions find-primers
+all: $(addprefix $(BDIR), $(EXEC))
+
 
 install: primer-trimming primer-predictions
 	install -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 $^ $(DESTDIR)$(PREFIX)/bin
 
 
-objects = $(SDIR)primer-trimming.o $(SDIR)trimprimers.o $(SDIR)primer-predictions.o $(SDIR)predictprimers.o $(DIR)find-primers.o
-$(objects): %.o: %.c
+objects := $(ODIR)primer-trimming.o $(ODIR)trimprimers.o $(ODIR)primer-predictions.o $(ODIR)predictprimers.o $(ODIR)print-sequences.o \
+	$(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-primers.o $(ODIR)match-adapters.o
+
+$(objects): $(ODIR)%.o: $(SDIR)%.c
+	@mkdir -p $(@D)
 	$(CC) -c $(CFLAGS) $< -o $@ $(FLAGS)
 
-primer-trimming: $(SDIR)primer-trimming.c $(SDIR)trimprimers.c
+$(BDIR)primer-trimming: $(SDIR)primer-trimming.o $(SDIR)trimprimers.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-primer-basecounting: $(SDIR)primer-basecounting.c
+primer-trimming: $(BDIR)primer-trimming
+
+$(BDIR)primer-basecounting: $(SDIR)primer-basecounting.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS)
 
-compare-seqs: $(SDIR)print-sequences.c $(SDIR)compare-seqs.c
+primer-basecounting: $(BDIR)primer-basecounting
+
+$(BDIR)compare-seqs: $(SDIR)print-sequences.o $(SDIR)compare-seqs.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $^ -o $@ $(LFLAGS)
 
-primer-predictions: $(SDIR)primer-predictions.c $(SDIR)predictprimers.c
+compare-seqs: $(BDIR)compare-seqs
+
+$(BDIR)primer-predictions: $(SDIR)primer-predictions.o $(SDIR)predictprimers.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-test: $(SDIR)print-sequences.c $(SDIR)store-primers.c $(SDIR)seqs_to_ints.c $(SDIR)print-sequences.c $(SDIR)test.c
+primer-predictions: $(BDIR)primer-predictions
+
+$(BDIR)test: $(SDIR)print-sequences.o $(SDIR)store-primers.o $(SDIR)seqs_to_ints.o $(SDIR)print-sequences.o $(SDIR)test.o $(SDIR)match-adapters.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-find-primers: $(SDIR)print-sequences.c $(SDIR)store-primers.c $(SDIR)seqs_to_ints.c $(SDIR)print-sequences.c $(SDIR)find-primers.c
+test: $(BDIR)test
+
+$(BDIR)find-primers: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-primers.o $(ODIR)match-adapters.o
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+find-primers: $(BDIR)find-primers
 
 .PHONY: clean
 
 clean:
-	rm -f primer-trimming primer-basecounting primer-predictions src/*.o
+	rm -fr bin/ obj/
+
+
+
+find-primers2: $(SDIR)print-sequences.o $(SDIR)store-primers.o $(SDIR)seqs_to_ints.o $(SDIR)match-adapters.o $(SDIR)find-primers2.o  
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
 
