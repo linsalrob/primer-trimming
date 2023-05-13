@@ -25,7 +25,8 @@ install: primer-trimming primer-predictions
 
 
 objects := $(ODIR)primer-trimming.o $(ODIR)trimprimers.o $(ODIR)primer-predictions.o $(ODIR)predictprimers.o $(ODIR)print-sequences.o \
-	$(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-primers.o $(ODIR)match-adapters.o
+	$(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-adapters.o $(ODIR)match-adapters.o  $(ODIR)trim-adapters-anywhere.o \
+	$(ODIR)reverse-complement.o
 
 $(objects): $(ODIR)%.o: $(SDIR)%.c
 	@mkdir -p $(@D)
@@ -55,17 +56,24 @@ $(BDIR)primer-predictions: $(SDIR)primer-predictions.o $(SDIR)predictprimers.o
 
 primer-predictions: $(BDIR)primer-predictions
 
-$(BDIR)test: $(SDIR)print-sequences.o $(SDIR)store-primers.o $(SDIR)seqs_to_ints.o $(SDIR)print-sequences.o $(SDIR)test.o $(SDIR)match-adapters.o
+$(BDIR)test: $(SDIR)print-sequences.o $(SDIR)store-primers.o $(SDIR)seqs_to_ints.o $(SDIR)print-sequences.o $(SDIR)match-adapters.o $(SDIR)test.o $(ODIR)reverse-complement.o
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 test: $(BDIR)test
 
-$(BDIR)find-primers: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-primers.o $(ODIR)match-adapters.o
+$(BDIR)find-adapters: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)match-adapters.o $(ODIR)find-adapters.o $(ODIR)reverse-complement.o
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-find-primers: $(BDIR)find-primers
+find-adapters: $(BDIR)find-adapters
+
+$(BDIR)trim-adapters-anywhere: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)match-adapters.o $(ODIR)trim-adapters-anywhere.o $(ODIR)reverse-complement.o
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+trim-adapters-anywhere: $(BDIR)trim-adapters-anywhere
+
 
 .PHONY: clean
 
