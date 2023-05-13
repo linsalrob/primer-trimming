@@ -6,7 +6,7 @@
 #include "compare-seqs.h"
 #include "match-adapters.h"
 #include "print-sequences.h"
-
+#include "reverse-complement.h"
 
 void test_primers() {
 	// populate the bst
@@ -63,15 +63,36 @@ void match_adapters() {
 	fprintf(stderr, "%sSize of primers: %ld Size of struct: %ld%s\n", BLUE, sizeof(*primers), sizeof(kmer_bst_t*), ENDC);
 	int kmer = 24; // our max primer length
 
-	encode_primers(primerfile, primers, kmer, 1);
+	encode_primers(primerfile, primers, kmer, true, 1);
 	char* seqfile = "fastq/913873_20180417_S_R1.sample.fastq.gz";
 	search_seqfile_for_primers(seqfile, primers, kmer, 1);
 }
 
 
+void test_reverse_complement() {
+	char* seq1 = "ATGC";
+	char* seq2 = "GCAT";
+	uint64_t enc1 =  kmer_encoding(seq1, 0, 4);
+	uint64_t enc2 =  kmer_encoding(seq2, 0, 4);
+	if (reverse_complement(enc1, 4) == enc2) 
+		printf("Success! We did a rc\n");
+	else
+		printf("Can't reverse complement %s\n", seq1);
+	seq1 = "ATGCATCAGCTAGCATACGTACGTA";
+	seq2 = "TACGTACGTATGCTAGCTGATGCAT";
+	enc1 =  kmer_encoding(seq1, 0, 25);
+	enc2 =  kmer_encoding(seq2, 0, 4);
+	if (reverse_complement(enc1, 4) == enc2) 
+		printf("Success! We did a rc\n");
+	else
+		printf("Can't reverse complement %s\n", seq1);
+
+}
+
 int main(int argc, char *argv[]) {
 	// test_primers();
 	// test_comparisons();
 	match_adapters();
+	test_reverse_complement();
 }
 
