@@ -31,7 +31,10 @@ kmer_bst_t* find_primer(uint64_t, kmer_bst_t*);
  */
 uint64_t kmer_encoding(char*, int, int);
 
-
+/*
+ * find the next primer for a sequence
+ */
 uint64_t next_kmer_encoding(char*, int, int, uint64_t);
+
 
 #endif
