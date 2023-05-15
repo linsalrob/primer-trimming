@@ -36,9 +36,9 @@ int has_n(char * seq) {
 
 	char * i;
 
-	for (i=a; *i; i++) {
+	for (i=seq; *i; i++) {
 		// i points successively to a[0], a[1], ... until *i is '\0' 
-		if ((int) i == 78 || (int) i == 110)
+		if (*i == 78 || *i == 110)
 			return 1;
 	}
 	return 0;
