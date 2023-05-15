@@ -2,11 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "colours.h"
 #include "compare-seqs.h"
 #include "match-adapters.h"
 #include "print-sequences.h"
-#include "reverse-complement.h"
+#include "rob_dna.h"
+#include "seqs_to_ints.h"
 
 void test_primers() {
 	// populate the bst
@@ -89,10 +91,38 @@ void test_reverse_complement() {
 
 }
 
+void test_has_n() {
+	char* non = "ATGCATGCTACGATCGACT";
+	char* withn = "AGCTAGCATNAGCTAGCAT";
+	if (has_n(non)) 
+		printf("WRONG: %s doesn't have an N but we think it does\n", non);
+	else
+		printf("Correct: %s does not have an N\n", non);
+	if (has_n(withn)) 
+		printf("Correct: %s DOES have an N\n", withn);
+	else
+		printf("WRONG: %s DOES have an N but we think it does not\n", withn);
+
+}
+
+void test_kmer_enc_dec() {
+	char* seq = "TGAAATGCTACGATCGACT";
+	uint64_t enc = kmer_encoding(seq, 0, 19);
+	printf("for %s we got %s\n", seq, int_to_binary(enc));
+	char* dseq = kmer_decoding(enc, 18);
+	if (strcmp(seq, dseq) == 0)
+		printf("%s%s and %s are the same%s\n", GREEN, seq, dseq, ENDC);
+	else 
+		printf("%sStarted with %s ended with %s and they are not the same!%s\n", RED, seq, dseq, ENDC);
+}
+
+
 int main(int argc, char *argv[]) {
 	// test_primers();
 	// test_comparisons();
-	match_adapters();
-	test_reverse_complement();
+	// match_adapters();
+	// test_reverse_complement();
+	// test_has_n();
+	test_kmer_enc_dec();
 }
 
