@@ -52,6 +52,28 @@ int encode_base(int base) {
 	}
 }
 
+int decode_base(int val) {
+	switch (val) {
+		case 0:
+			return 65;
+			break;
+		case 1:
+			return 67;
+			break;
+		case 2:
+			return 71;
+			break;
+		case 3:
+			return 84;
+			break;
+		default:
+			fprintf(stderr, "%s Error: We tried to decode %d but we are only using two-bit encoding.%s\n", RED, val, ENDC);
+			return 78;
+	}
+}
+
+
+
 uint64_t kmer_encoding(char * seq, int start_position, int k) {
 	/*
 	 * Given a sequence, seq, start at start_position (0 indexed), and read k characters. 
@@ -73,6 +95,25 @@ uint64_t kmer_encoding(char * seq, int start_position, int k) {
 
 	return enc;
 }
+
+char* kmer_decoding(uint64_t enc, int k) {
+	/* 
+	 * convert an encoded string back to a base
+	 */
+
+	char* seq = malloc(sizeof(char *) * k);
+	int posn = k;
+	while (posn >= 0) {
+		int l = (enc & 1);
+		enc >>= 1;
+		int h = (enc & 1);
+		enc >>= 1;
+		h = (h << 1) + l;
+		seq[posn--] = (char) decode_base(h);
+	}
+	return seq;
+}
+
 
 
 uint64_t next_kmer_encoding(char* seq, int start_position, int k, uint64_t enc) {
