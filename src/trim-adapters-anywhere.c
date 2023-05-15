@@ -22,11 +22,11 @@
 
 void print_usage() {
 	printf("Usage: find-primers [options] -p primers.fa -f sequences.fq.gz -o output.fq.gz\n");
-	printf("\tprimers.fa: fasta (or fastq) file of the primer sequences to look for\n");
+	printf("\n\tprimers.fa: fasta (or fastq) file of the primer sequences to look for\n");
 	printf("\tsequences.fq.gz: fastq (probably) file of the sequences to look in\n");
 	printf("\touput.fq.gz: compressed fastq to write\n");
-	printf("\tOPTIONS:\n");
-	printf("\t\t-n only include forward primer sequences, not reverse complement\n");
+	printf("\\ntOPTIONS:\n");
+	printf("\t\t-w only include forward primer sequences, not reverse complement\n");
 	printf("\t\t-v print the version and exit\n");
 }
 
@@ -37,17 +37,18 @@ int main(int argc, char *argv[]) {
 	int opt = 0;
 	int verbose = 0;
         static struct option long_options[] = {
-                        {"primers",    required_argument, 0, 'p'},
-                        {"fastq",      required_argument, 0, 'f'},
-                        {"no-reverse", no_argument,       0, 'n'},
-			{"verbose",    no_argument,       0, 'l'},
-                        {"version",    no_argument,       0, 'v'},
-                        {0,            0,                 0, 0}
+                        {"primers",      required_argument, 0, 'p'},
+                        {"fastq",        required_argument, 0, 'f'},
+                        {"forWard",      no_argument,       0, 'w'},
+			{"verbose",      no_argument,       0, 'l'},
+                        {"version",      no_argument,       0, 'v'},
+                        {0,              0,                 0, 0}
         };
         int option_index = 0;
 	bool no_reverse = false;
 	bool tab = false;
-        while ((opt = getopt_long(argc, argv, "p:f:o:nvl", long_options, &option_index)) != -1) {
+	bool drop_n = false;
+        while ((opt = getopt_long(argc, argv, "p:f:o:nwvl", long_options, &option_index)) != -1) {
                 switch (opt) {
                         case 'p' :
 				primerfile = strdup(optarg);
@@ -55,7 +56,7 @@ int main(int argc, char *argv[]) {
                         case 'f' :
 				fqfile = strdup(optarg);
                                 break;
-			case 'n' :
+			case 'w' :
 				no_reverse = true;
 				break;
 			case 'o' :
@@ -78,12 +79,6 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	fprintf(stderr, "We will parse primers from %s, look for them in %s and write trimmed sequences to %s\n", primerfile, fqfile, outfile);
-	if (no_reverse)
-		fprintf(stderr, "\tWe will only use the forward sequences\n");
-	else
-		fprintf(stderr, "\tWe will look at forward and reverse\n");
-	fprintf(stderr, "\n\n");
 
 	kmer_bst_t *primers;
 	primers = (kmer_bst_t *) malloc(sizeof(*primers));
