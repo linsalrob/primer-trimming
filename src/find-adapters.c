@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 	kmer_bst_t *primers;
 	primers = (kmer_bst_t *) malloc(sizeof(*primers));
 	
-	int kmer = 24; // our max primer length
+	int kmer = 24; // our max primer length -- this should either be an option or the min(length) in the file
 
 	bool do_reverse = true;
 	if (no_reverse)
