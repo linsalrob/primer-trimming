@@ -69,6 +69,8 @@ void encode_primers(char* primerfile, kmer_bst_t* primers, int kmer, bool revers
 		if (verbose)
 			fprintf(stderr, "%sEncoding %s with length %ld using k-mer %d%s\n", GREEN, seq->seq.s, seq->seq.l, kmer, ENDC);
 	}
+	kseq_destroy(seq);
+	gzclose(fp);
 }
 
 void search_seqfile_for_primers(char* seqfile, kmer_bst_t* primers, int kmer, int verbose) {
@@ -106,6 +108,8 @@ void search_seqfile_for_primers(char* seqfile, kmer_bst_t* primers, int kmer, in
 		
 		}
 	}
+	kseq_destroy(seq);
+	gzclose(fp);
 }
 
 
@@ -132,11 +136,12 @@ void trim_seq_at_primers(char* seqfile, kmer_bst_t* primers, int kmer, char* out
 
 	seq = kseq_init(fp);
 	int l;
-	gzFile writer = gzopen(outfile, "w");
-	if (writer == NULL) {
-		fprintf(stderr, "%sCan't write to %s%s\n", RED, outfile, ENDC);
-		exit(4);
-	}
+
+	char* pipe_file = malloc(sizeof(char) * (strlen(outfile) + 10));
+	strcpy(pipe_file, "gzip - > ");
+	strcat(pipe_file, outfile);
+
+	FILE *pipe = popen(pipe_file, "w");
 
 	while ((l = kseq_read(seq)) >= 0) {
 		uint64_t enc = kmer_encoding(seq->seq.s, 0, kmer);
@@ -152,39 +157,23 @@ void trim_seq_at_primers(char* seqfile, kmer_bst_t* primers, int kmer, char* out
 				kmer_bst_t *ks = find_primer(enc, primers);
 				if (ks) {
 					printf("%s\t%s\t%d\n", ks->id, seq->name.s, i);
-					char* newseq = strdup(seq->seq.s);
-					newseq[i] = '\0';
-					char* newqua = strdup(seq->qual.s);
-					newqua[i] = '\0';
-					gzwrite(writer, "@", 1);
-					gzwrite(writer, seq->name.s, strlen(seq->name.s));
-					gzwrite(writer, " ", 1);
-					gzwrite(writer, seq->comment.s, strlen(seq->comment.s));
-					gzwrite(writer, "\n", 1);
-					gzwrite(writer, newseq, i);
-					gzwrite(writer, "\n+\n", 3);
-					gzwrite(writer, newqua, i);
-					gzwrite(writer, "\n", 1);
+					seq->seq.s[i] = '\0';
+					seq->qual.s[i] = '\0';
+					fprintf(pipe, "@%s %s\n%s\n+\n%s\n", seq->name.s, seq->comment.s, seq->seq.s, seq->qual.s);
 					printed = true;
 					break;
 				}
 
 			}
 		}
-		if (!printed) {
-					gzwrite(writer, "@", 1);
-					gzwrite(writer, seq->name.s, strlen(seq->name.s));
-					gzwrite(writer, " ", 1);
-					gzwrite(writer, seq->comment.s, strlen(seq->comment.s));
-					gzwrite(writer, "\n", 1);
-					gzwrite(writer, seq->seq.s, strlen(seq->seq.s));
-					gzwrite(writer, "\n+\n", 3);
-					gzwrite(writer, seq->qual.s, strlen(seq->qual.s));
-					gzwrite(writer, "\n", 1);
-		}
+		if (!printed) 
+			fprintf(pipe, "@%s %s\n%s\n+\n%s\n", seq->name.s, seq->comment.s, seq->seq.s, seq->qual.s);
 
 	}
-	gzclose(writer);
+
+	pclose(pipe);
+	kseq_destroy(seq);
+	gzclose(fp);
 
 
 }
