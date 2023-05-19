@@ -22,7 +22,8 @@ install: primer-trimming primer-predictions
 
 objects := $(ODIR)primer-trimming.o $(ODIR)trimprimers.o $(ODIR)primer-predictions.o $(ODIR)predictprimers.o $(ODIR)print-sequences.o \
 	$(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-adapters.o $(ODIR)match-adapters.o  $(ODIR)trim-adapters-anywhere.o \
-	$(ODIR)rob_dna.o $(ODIR)primer-basecounting.o $(ODIR)test.o
+	$(ODIR)rob_dna.o $(ODIR)primer-basecounting.o $(ODIR)test.o $(ODIR)filter_reads_with_n.o $(ODIR)match-paired-files.o \
+	$(ODIR)search-paired-files.o
 
 $(objects): $(ODIR)%.o: $(SDIR)%.c
 	@mkdir -p $(@D)
@@ -63,15 +64,27 @@ $(BDIR)find-adapters: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seq
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 find-adapters: $(BDIR)find-adapters
-
+ 
 $(BDIR)trim-adapters-anywhere: $(ODIR)print-sequences.o $(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)match-adapters.o $(ODIR)trim-adapters-anywhere.o $(ODIR)rob_dna.o
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
 trim-adapters-anywhere: $(BDIR)trim-adapters-anywhere
 
+$(BDIR)filter_reads_with_n: $(ODIR)rob_dna.o $(ODIR)filter_reads_with_n.o
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
 
-EXEC=primer-trimming primer-basecounting primer-predictions find-adapters trim-adapters-anywhere
+filter_reads_with_n: $(BDIR)filter_reads_with_n
+
+
+$(BDIR)search-paired-files: $(ODIR)match-paired-files.o $(ODIR)search-paired-files.o $(ODIR)seqs_to_ints.o $(ODIR)rob_dna.o 
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+search-paired-files: $(BDIR)search-paired-files
+
+EXEC=primer-trimming primer-basecounting primer-predictions find-adapters trim-adapters-anywhere  filter_reads_with_n
 all: $(addprefix $(BDIR), $(EXEC))
 
 
