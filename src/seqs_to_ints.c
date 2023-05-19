@@ -5,6 +5,13 @@
 #include "print-sequences.h"
 #include "colours.h"
 
+// ALternate DNA encoding lookup table
+//                         A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z     
+static int dnaEncodeTable [26] = {0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0};
+static int dnaDecodeTable [26] = {65, 67, 71, 84};
+
+
+
 int encode_base(int base) {
 	/*
 	 * Convert a base (A, G, C, T) to a number.
@@ -17,59 +24,23 @@ int encode_base(int base) {
 	 * 	T : 3 : 11
 	 *
 	 */
-
-	switch ( base ) {
-		case 65 :
-			// A
-			return 0;
-		case 97 :
-			// a
-			return 0;
-		case 67 :
-			// C
-			return 1;
-		case 99 :
-			// c
-			return 1;
-		case 71 :
-			// G
-			return 2;
-		case 103 :
-			// g
-			return 2;
-		case 84 :
-			// T
-			return 3;
-		case 116 :
-			// t
-			return 3;
-		case 0:
-			fprintf(stderr, "%s Error: End of string (null terminator) received%s\n", RED, ENDC);
-			return 0;
-		default:
-			fprintf(stderr, "%s ERROR: We only encode {A,G,C,T}. Don't know '%c'%s\n", RED, (char) base, ENDC);
-			return 0;
+	if ((base >= (int)'a') && (base <= (int)'z')) {
+		return dnaEncodeTable[base - (int)'a'];
 	}
+	if ((base >= (int)'A') && (base <= (int)'Z')) {
+		return dnaEncodeTable[base - (int)'A'];
+	}
+	fprintf(stderr, "We can't encode a base that is not [a-z][A-Z]. We have |%c|\n", (char) base);
+	return 0;
 }
 
 int decode_base(int val) {
-	switch (val) {
-		case 0:
-			return 65;
-			break;
-		case 1:
-			return 67;
-			break;
-		case 2:
-			return 71;
-			break;
-		case 3:
-			return 84;
-			break;
-		default:
-			fprintf(stderr, "%s Error: We tried to decode %d but we are only using two-bit encoding.%s\n", RED, val, ENDC);
-			return 78;
+
+	if (val < 0 || val > 3) {
+		fprintf(stderr, "We can't decode a value of %d\n", val);
+		return 78;
 	}
+	return dnaDecodeTable[val];
 }
 
 
