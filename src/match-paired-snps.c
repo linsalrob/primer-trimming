@@ -22,6 +22,8 @@
 
 KSEQ_INIT(gzFile, gzread);
 
+#define MAXKMER 31
+
 void create_all_snps(char *adapter, int start, int kmer, kmer_bst_t *primers) {
 	/*
 	 * calculate a SNP at every position. There is pretty much no easy way to do this rather than an O(4**k) operation, I don't think?
@@ -31,7 +33,7 @@ void create_all_snps(char *adapter, int start, int kmer, kmer_bst_t *primers) {
 	add_primer(enc, "Original", primers);
 
 	char *base = "ACGT";
-	for (int i = 0; i <= kmer; i++) {
+	for (int i = 0; i < kmer; i++) {
 		char* snp = malloc(sizeof(char) * strlen(adapter)+1);
 		strcpy(snp, adapter);
 		for (int j = 0; j<4; j++) {
@@ -40,8 +42,8 @@ void create_all_snps(char *adapter, int start, int kmer, kmer_bst_t *primers) {
 			snp[i] = base[j];
 			char* name = malloc(sizeof(char) * 40);
 			sprintf(name, "SNP: %d %c->%c", i, adapter[i], snp[i]);
-			fprintf(stderr, "Adapter %s\n", name);
 			uint64_t encs = kmer_encoding(snp, 0, kmer);
+			fprintf(stderr, "SNP: %d %c->%c %s %ld\n", i, adapter[i], snp[i], snp, encs);
 			add_primer(encs, name, primers);
 		}
 	}
@@ -70,11 +72,11 @@ void trim_pairwise_snps(struct options *opt) {
 
 	
 	int r1kmer = strlen(opt->I7left);
-	if (r1kmer > 32) {
-		fprintf(stderr, "%sI7left (%s) is longer than 32bp. Only using 32bp%s\n", GREEN, opt->I7left, ENDC);
-		r1kmer = 32;
+	if (r1kmer > MAXKMER) {
+		fprintf(stderr, "%sI7left (%s) is longer than %d bp. Only using %d bp%s\n", GREEN, opt->I7left, MAXKMER, MAXKMER, ENDC);
+		r1kmer = MAXKMER;
 		char* cpy = strdup(opt->I7left);
-		cpy[32] = '\0';
+		cpy[r1kmer] = '\0';
 		if (opt->debug)
 			fprintf(stderr, "%s%s\n%s%s\n", YELLOW, opt->I7left, cpy, ENDC);
 		opt->I7left = cpy;
@@ -92,6 +94,10 @@ void trim_pairwise_snps(struct options *opt) {
 		fprintf(stderr, "%sCANNOT malloc for primer bst%s\n", RED, ENDC);
 		exit(3);
 	}
+	i7l_primers->bigger = NULL;
+	i7l_primers->smaller = NULL;
+	i7l_primers->value = 0;
+	i7l_primers->id = "";
 
 
 	create_all_snps(opt->I7left, 0, r1kmer, i7l_primers);
@@ -189,9 +195,11 @@ void trim_pairwise_snps(struct options *opt) {
 	int r2kmer = strlen(opt->I5right);
 	char* i5right_rc = malloc(sizeof(char) * strlen(opt->I5right)+1);
 	rc(i5right_rc, opt->I5right);
-	
-	if (r2kmer > 32) {
-		r2kmer = 32;
+	fprintf(stderr, "%sRC:\n%s\n%s%s\n", GREEN, opt->I5right, i5right_rc, ENDC);
+	fprintf(stderr, "%sLen of i5right_rc is %ld. Kmer is %d%s\n", YELLOW, strlen(i5right_rc), r2kmer, ENDC);
+	if (r2kmer >= MAXKMER) {
+		fprintf(stderr, "%sKmer is %d. It needs to be less than %d, so we trimmed it to fit!%s\n", YELLOW, r2kmer, MAXKMER, ENDC);
+		r2kmer = MAXKMER;
 		i5right_rc[r2kmer]='\0';
 	}
 
@@ -201,12 +209,18 @@ void trim_pairwise_snps(struct options *opt) {
 	// malloc for possibilities for the bst
 	kmer_bst_t *i5r_primers;
 	fprintf(stderr, "%sTrying to malloc %ld bytes%s\n", YELLOW, (sizeof(*i5r_primers) * ((3*r2kmer)+1)), ENDC);
-	i5r_primers = (kmer_bst_t *) malloc(sizeof(*i5r_primers) * ((3*r2kmer)+1));
+	i5r_primers = malloc(sizeof(*i5r_primers) * ((3*r2kmer)+1));
+	i5r_primers->bigger = NULL;
+	i5r_primers->smaller = NULL;
+	i5r_primers->value = 0;
+	i5r_primers->id = "";
+
+	// i5r_primers = (kmer_bst_t *) malloc(sizeof(*i5r_primers) * ((4*r2kmer)+1));
 	if (i5r_primers == NULL) {
 		fprintf(stderr, "%sCANNOT malloc for primer bst%s\n", RED, ENDC);
 		exit(3);
 	}
-
+	fprintf(stderr, "mallocd. snping\n");
 
 	create_all_snps(i5right_rc, 0, r2kmer, i5r_primers);
 
