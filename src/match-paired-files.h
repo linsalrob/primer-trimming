@@ -52,4 +52,8 @@ unsigned hash (char *s);
 
 void trim_pairwise(struct options *opt);
 
+/* this version tries to get all single bp snps in the adapters */
+
+void trim_pairwise_snps(struct options *opt);
+
 #endif

@@ -1,5 +1,8 @@
 #include "rob_dna.h"
+#include "colours.h"
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
 
 uint64_t reverse_complement(uint64_t enc, int len) {
 	/*
@@ -27,6 +30,21 @@ uint64_t reverse_complement(uint64_t enc, int len) {
         }
         return r;
 }
+
+char* rc(char* to, char* from) {
+	/*
+	 * Reverse complement the sequence in from and put it in to
+	 */
+
+	//            A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z
+	int rc[26] = {3, 3, 2, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 3, 3, 3, 3, 3, 3};
+	char*bases = "ACGT";
+	for (int i = 0; i<strlen(from); i++) 
+		to[strlen(from)-i-1] = bases[rc[(int) from[i] - (int)'A']];
+	
+	return to;
+}
+
 
 
 int has_n(char * seq) {

@@ -6,6 +6,8 @@
 
 uint64_t reverse_complement(uint64_t, int);
 
+char* rc(char *, char*);
+
 int has_n(char *);
 
 #endif

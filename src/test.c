@@ -84,10 +84,19 @@ void test_reverse_complement() {
 	seq2 = "TACGTACGTATGCTAGCTGATGCAT";
 	enc1 =  kmer_encoding(seq1, 0, 25);
 	enc2 =  kmer_encoding(seq2, 0, 4);
+	printf("Testing encoding rc:\n");
 	if (reverse_complement(enc1, 4) == enc2) 
-		printf("Success! We did a rc\n");
+		printf("\tSuccess! We did a rc of the encoding\n");
 	else
-		printf("Can't reverse complement %s\n", seq1);
+		printf("\tCan't reverse complement the encoding of %s\n", seq1);
+	printf("Testing char* rc:\n");
+
+	char* seq1rc = malloc(sizeof(char) * strlen(seq1)+1);
+	rc(seq1rc, seq1);
+	if (strcmp(seq1rc, seq2) == 0)
+		printf("\tSuccess! We did a rc of the char*\n");
+	else
+		printf("\t%sCan't reverse complement the char* \n%s\n%s%s\n", RED, seq1, seq1rc, ENDC);
 
 }
 
@@ -121,7 +130,7 @@ int main(int argc, char *argv[]) {
 	// test_primers();
 	// test_comparisons();
 	// match_adapters();
-	// test_reverse_complement();
+	test_reverse_complement();
 	// test_has_n();
 	test_kmer_enc_dec();
 }

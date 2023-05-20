@@ -28,22 +28,31 @@ void create_all_snps(char *adapter, int start, int kmer, kmer_bst_t *primers) {
 	 */
 
 	uint64_t enc = kmer_encoding(adapter, 0, kmer);
-	add_primers(enc, "Original", primers);
-	char* tmp = malloc(sizeof(char) * strlen(adapter));
-	char bases[4] = {"A", "C", "G", "T"}; 
-	for (int i=0; i<=kmer; i++) {
-		strcpy(tmp, adapter);
-		for (int j=0; j<4; j++) {
-			tmp[i] = bases[j];
-			uint64_t snp= kmer_encoding(tmp, 0, kmer);
-			fprintf(stderr, "%s%s: %ld%s\n", BLUE, tmp, snp, ENDC);
-			char* name = malloc(sizeof(char) * 10);
+	add_primer(enc, "Original", primers);
 
-			add_primers(snp, "
+	char *base = "ACGT";
+	for (int i = 0; i <= kmer; i++) {
+		char* snp = malloc(sizeof(char) * strlen(adapter)+1);
+		strcpy(snp, adapter);
+		for (int j = 0; j<4; j++) {
+			if (adapter[i] == base[j])
+				continue;
+			snp[i] = base[j];
+			char* name = malloc(sizeof(char) * 40);
+			sprintf(name, "SNP: %d %c->%c", i, adapter[i], snp[i]);
+			fprintf(stderr, "Adapter %s\n", name);
+			uint64_t encs = kmer_encoding(snp, 0, kmer);
+			add_primer(encs, name, primers);
+		}
+	}
+}
 
 
 
-void trim_pairwise(struct options *opt) {
+
+
+
+void trim_pairwise_snps(struct options *opt) {
 	
 	typedef struct COUNTS {
 		int R1_seqs;
@@ -72,10 +81,13 @@ void trim_pairwise(struct options *opt) {
 	}
 	
 
-	// malloc for 4**k possibilities for the bst
+	// malloc for possibilities for the bst
+	// I initially thought this was 4^k possibilities, but we are not doing all combinations
+	// so it is actually (3*k)+1. At each position we are doing G, A, T, C except 
+	// not the original base
 	kmer_bst_t *i7l_primers;
-	fprintf(stderr, "%sTrying to malloc %d bytes%s\n", (sizeof(*i7l_primers * pow(4, r1kmer))), ENDC);
-	i7l_primers = (kmer_bst_t *) malloc(sizeof(*i7l_primers * pow(4, r1kmer)));
+	fprintf(stderr, "%sTrying to malloc %ld bytes%s\n", YELLOW, (sizeof(*i7l_primers) * ((3*r1kmer)+1)),  ENDC);
+	i7l_primers = (kmer_bst_t *) malloc(sizeof(*i7l_primers) * ((3*r1kmer)+1));
 	if (i7l_primers == NULL) {
 		fprintf(stderr, "%sCANNOT malloc for primer bst%s\n", RED, ENDC);
 		exit(3);
@@ -138,8 +150,9 @@ void trim_pairwise(struct options *opt) {
 		R1read->next = NULL;
 
 
-		if (enc == i7l) {
-			fprintf(match_out, "R1\t%s\t0\n", seq->name.s);
+		kmer_bst_t *ks = find_primer(enc, i7l_primers);
+                if (ks) {
+			fprintf(match_out, "R1\t%s\t%s\t0\n", ks->id, seq->name.s);
 			counts.R1_found++;
 			R1read->trim = 0;
 			unsigned hashval = hash(R1read->id) % opt->tablesize;
@@ -150,8 +163,9 @@ void trim_pairwise(struct options *opt) {
 
 		for (int i=1; i<seq->seq.l - r1kmer + 1; i++) {
 			enc = next_kmer_encoding(seq->seq.s, i, r1kmer, enc);
-			if (enc == i7l) {
-				fprintf(match_out, "R1\t%s\t%d\n", seq->name.s, i);
+			kmer_bst_t *ks = find_primer(enc, i7l_primers);
+			if (ks) {
+				fprintf(match_out, "R1\t%s\t%s\t%d\n", ks->id, seq->name.s, i);
 				counts.R1_found++;
 				R1read->trim = i;
 				break;
@@ -167,11 +181,35 @@ void trim_pairwise(struct options *opt) {
 	gzclose(fp1);
 	fclose(match_out);
 
+	// we don't need the I7left primers any more!
+	free(i7l_primers);
+
 	// Step 2. Read the R2 file and find the locations of I5right
+	// In this case, we need to rc the string so we can make all possible combinations of it
 	int r2kmer = strlen(opt->I5right);
-	uint64_t i5r = kmer_encoding(opt->I5right, 0, r2kmer);
-	i5r = reverse_complement(i5r, r2kmer);
+	char* i5right_rc = malloc(sizeof(char) * strlen(opt->I5right)+1);
+	rc(i5right_rc, opt->I5right);
 	
+	if (r2kmer > 32) {
+		r2kmer = 32;
+		i5right_rc[r2kmer]='\0';
+	}
+
+	//uint64_t i5r = kmer_encoding(opt->I5right, 0, r2kmer);
+	// i5r = reverse_complement(i5r, r2kmer);
+	
+	// malloc for possibilities for the bst
+	kmer_bst_t *i5r_primers;
+	fprintf(stderr, "%sTrying to malloc %ld bytes%s\n", YELLOW, (sizeof(*i5r_primers) * ((3*r2kmer)+1)), ENDC);
+	i5r_primers = (kmer_bst_t *) malloc(sizeof(*i5r_primers) * ((3*r2kmer)+1));
+	if (i5r_primers == NULL) {
+		fprintf(stderr, "%sCANNOT malloc for primer bst%s\n", RED, ENDC);
+		exit(3);
+	}
+
+
+	create_all_snps(i5right_rc, 0, r2kmer, i5r_primers);
+
 	// Open R2 for reading
 	gzFile fp2 = gzopen(opt->R2_file, "r");
 	if (fp2 == NULL) {
@@ -205,15 +243,17 @@ void trim_pairwise(struct options *opt) {
 		counts.R2_seqs++;
 		uint64_t enc = kmer_encoding(seq->seq.s, 0, r2kmer);
 		int trim = -1;
-		if (enc == i5r) {
-			fprintf(match_out, "R2\t%s\t0\n", seq->name.s);
+		kmer_bst_t *ks = find_primer(enc, i5r_primers);
+		if (ks) {
+			fprintf(match_out, "R2\t%s\t%s\t0\n", ks->id, seq->name.s);
 			counts.R2_found++;
 			trim = 0;
 		} else {
 			for (int i=1; i<seq->seq.l - r2kmer + 1; i++) {
 				enc = next_kmer_encoding(seq->seq.s, i, r2kmer, enc);
-				if (enc == i5r) {
-					fprintf(match_out, "R2\t%s\t%d\n", seq->name.s, i);
+				kmer_bst_t *ks = find_primer(enc, i5r_primers);
+				if (ks) {
+					fprintf(match_out, "R2\t%s\t%s\t%d\n", ks->id, seq->name.s, i);
 					counts.R2_found++;
 					trim = i;
 				}
@@ -282,6 +322,9 @@ void trim_pairwise(struct options *opt) {
 	fclose(match_out);
 	kseq_destroy(seq);
 	gzclose(fp2);
+
+	// we don't need the I5right primers any more!
+	free(i5r_primers);
 
 	// Step 3. Reread R1 and write the left reads, trimming at (strcmp(id, seq->name.s) == 0) -> trim
 	// We only need to do this if we are going to write to the file.
