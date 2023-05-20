@@ -84,6 +84,12 @@ $(BDIR)search-paired-files: $(ODIR)match-paired-files.o $(ODIR)search-paired-fil
 
 search-paired-files: $(BDIR)search-paired-files
 
+$(BDIR)search-paired-snps: $(ODIR)match-paired-files.o $(ODIR)search-paired-files.o $(ODIR)seqs_to_ints.o $(ODIR)rob_dna.o $(ODIR)store-primers.o $(ODIR)match-paired-snps.o
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) -o $@ $^ $(LFLAGS)
+
+search-paired-snps: $(BDIR)search-paired-snps
+
 EXEC=primer-trimming primer-basecounting primer-predictions find-adapters trim-adapters-anywhere  filter_reads_with_n
 all: $(addprefix $(BDIR), $(EXEC))
 
