@@ -23,7 +23,7 @@ install: primer-trimming primer-predictions
 objects := $(ODIR)primer-trimming.o $(ODIR)trimprimers.o $(ODIR)primer-predictions.o $(ODIR)predictprimers.o $(ODIR)print-sequences.o \
 	$(ODIR)store-primers.o $(ODIR)seqs_to_ints.o $(ODIR)find-adapters.o $(ODIR)match-adapters.o  $(ODIR)trim-adapters-anywhere.o \
 	$(ODIR)rob_dna.o $(ODIR)primer-basecounting.o $(ODIR)test.o $(ODIR)filter_reads_with_n.o $(ODIR)match-paired-files.o \
-	$(ODIR)match-paired-snps.o $(ODIR)search-paired-snp.o
+	$(ODIR)match-paired-snps.o $(ODIR)search-paired-snp.o $(ODIR)search-paired-files.o
 
 $(objects): $(ODIR)%.o: $(SDIR)%.c
 	@mkdir -p $(@D)
