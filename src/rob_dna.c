@@ -39,9 +39,11 @@ char* rc(char* to, char* from) {
 	//            A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z
 	int rc[26] = {3, 3, 2, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 3, 3, 3, 3, 3, 3};
 	char*bases = "ACGT";
-	for (int i = 0; i<strlen(from); i++) 
+
+	int i;
+	for (i = 0; i<strlen(from); i++)
 		to[strlen(from)-i-1] = bases[rc[(int) from[i] - (int)'A']];
-	
+	to[i]='\0';
 	return to;
 }
 

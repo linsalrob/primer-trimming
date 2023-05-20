@@ -124,14 +124,30 @@ void test_kmer_enc_dec() {
 	else 
 		printf("%sStarted with %s ended with %s and they are not the same!%s\n", RED, seq, dseq, ENDC);
 }
+void test_kmer_enc_dec_broke() {
+	char* seq = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
+	uint64_t enc = kmer_encoding(seq, 0, 19);
+	printf("Broke: enc %ld for %s we got %s\n", enc, seq, int_to_binary(enc));
+	for (int i = 19; i<=strlen(seq); i++)
+		printf("Broke: %d enc %ld for %s we got %s\n", i, kmer_encoding(seq, 0, i), seq, int_to_binary(enc));
+}
+
+
+void test_enc() {
+	char *test = "GATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT";
+	uint64_t enc = kmer_encoding(test, 0, strlen(test)-1);
+	fprintf(stderr, "enc of %s is %ld\n", test, enc);
+}
 
 
 int main(int argc, char *argv[]) {
 	// test_primers();
 	// test_comparisons();
 	// match_adapters();
-	test_reverse_complement();
+	// test_reverse_complement();
 	// test_has_n();
 	test_kmer_enc_dec();
+	test_kmer_enc_dec_broke();
+	test_enc();
 }
 
